@@ -12,4 +12,4 @@ HICC 2025 상반기 프로젝트 대회 backend repository입니다.
 
 
 ### 클래스 다이어그램
-![hiccClassDiagram.drawio.png](hiccClassDiagram.drawio.png)
+
