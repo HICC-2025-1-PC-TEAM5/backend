@@ -1,7 +1,9 @@
 package hicc_project.RottenToday.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 public class RecipeIngredient {
     @Id
