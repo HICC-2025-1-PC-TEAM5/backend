@@ -22,7 +22,7 @@ public class Recipe {
     private int portion;
 
     @OneToMany(mappedBy = "recipe")
-    private List<CookHistory> cookHistories;
+    private List<History> cookHistories;
 
     @OneToMany(mappedBy = "recipe")
     private List<Taste> tastes;
