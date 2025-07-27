@@ -13,7 +13,7 @@ public class User {
     private String name;
 
     @OneToMany(mappedBy = "user")
-    private List<CookHistory> cookHistories;
+    private List<History> cookHistories;
 
     @OneToMany(mappedBy = "user")
     private List<Taste> tastes;

@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.controller;
 
+import hicc_project.RottenToday.dto.HistoryListResponse;
 import hicc_project.RottenToday.dto.RecipeRequestDto;
 import hicc_project.RottenToday.dto.TasteRecipeListResponse;
 import hicc_project.RottenToday.service.UserService;
@@ -34,6 +35,18 @@ public class UserController {
         userService.deleteTaste(requestDto.getRecipeId());
         return ResponseEntity.ok("ok");
 
+    }
+
+    @GetMapping("/api/users/{userId}/history")
+    public ResponseEntity<HistoryListResponse> getHistory(@PathVariable Long userId) {
+        HistoryListResponse history = userService.getHistory(userId);
+        return ResponseEntity.ok(history);
+    }
+
+    @PostMapping("/api/users/{userId}/history")
+    public ResponseEntity<String> updateHistory(@PathVariable Long userId, @RequestBody RecipeRequestDto requestDto) {
+        userService.updateHistory(userId, requestDto.getRecipeId());
+        return ResponseEntity.ok("ok");
     }
 
 }
