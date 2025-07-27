@@ -1,9 +1,11 @@
 package hicc_project.RottenToday.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 public class RefrigeratorIngredient {
     @Id
