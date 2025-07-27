@@ -1,19 +1,8 @@
 package hicc_project.RottenToday.repository;
 
+
 import hicc_project.RottenToday.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
-
-public interface UserRepository {
-
-    User save(User user);
-
-    void update(User user);
-
-    void delete(User user);
-
-    Optional<User> findById(long id);
-
-
-
+public interface UserRepository extends JpaRepository<User, Long> {
 }
