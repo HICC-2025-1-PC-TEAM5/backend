@@ -1,9 +1,6 @@
 package hicc_project.RottenToday.service;
 
-import hicc_project.RottenToday.dto.HistoryListResponse;
-import hicc_project.RottenToday.dto.TasteRecipeDto;
-import hicc_project.RottenToday.dto.TasteRecipeListResponse;
-import hicc_project.RottenToday.dto.TasteRecipeResponse;
+import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.HistoryRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
@@ -16,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -67,5 +66,21 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         History history = new History(user, time, recipe);
         historyRepository.save(history);
+    }
+
+    public HistoryListResponse getFavorites(Long userId) {
+        List<History> favorites = historyRepository.findByUserId(userId).stream()
+                .filter(f ->f.isFavorite())
+                .collect(Collectors.toList());
+        HistoryListResponse historyListResponse = new HistoryListResponse(favorites);
+        return historyListResponse;
+    }
+
+
+    public void updateFavorites(Long userId, FavoriteRequestDto requestDto) {
+        History history = historyRepository.findById(requestDto.getRecipeId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
+        history.setFavorite(requestDto.isType());
+        historyRepository.save(history);
+
     }
 }
