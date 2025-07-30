@@ -25,6 +25,10 @@ public class Taste {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "recipe_id")
+    private Recipe recipe;
+
     public Taste(Long id, Appetite type, Recipe recipe){
         this.id = id;
         this.type = type;
