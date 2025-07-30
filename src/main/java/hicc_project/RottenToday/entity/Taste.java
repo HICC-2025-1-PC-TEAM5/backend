@@ -29,6 +29,10 @@ public class Taste {
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
 
+    protected Taste() {
+        // JPA를 위한 기본 생성자
+    }
+
     public Taste(Long id, Appetite type, Recipe recipe){
         this.id = id;
         this.type = type;
