@@ -2,6 +2,7 @@ package hicc_project.RottenToday.service;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import hicc_project.RottenToday.dto.ImageToIngredientResponse;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Service
 public class VisionService {
-    public List<String> detectIngredient(byte[] imageBytes) throws IOException {
+    public ImageToIngredientResponse detectIngredient(byte[] imageBytes) throws IOException {
         List<String> labels = new ArrayList<>();
 
         // Detects labels in the specified local image.
@@ -36,6 +37,6 @@ public class VisionService {
             }
         }
 
-        return labels;
+        return new ImageToIngredientResponse(labels);
     }
 }
