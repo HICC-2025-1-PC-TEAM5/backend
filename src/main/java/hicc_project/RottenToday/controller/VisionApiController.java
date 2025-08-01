@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.controller;
 
+import hicc_project.RottenToday.dto.ImageToIngredientResponse;
 import hicc_project.RottenToday.service.VisionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -23,9 +24,9 @@ public class VisionApiController {
     }
 
     @PostMapping("/api/users/fridge/image-to-ingredients")
-    public ResponseEntity<List<String>> analyzeIngredients(@RequestParam("image") MultipartFile image) throws IOException {
+    public ResponseEntity<ImageToIngredientResponse> analyzeIngredients(@RequestParam("image") MultipartFile image) throws IOException {
         byte[] imageBytes =image.getBytes();
-        List<String> labels = visionService.detectIngredient(imageBytes);
+        ImageToIngredientResponse labels = visionService.detectIngredient(imageBytes);
         return ResponseEntity.ok(labels);
 
     }
