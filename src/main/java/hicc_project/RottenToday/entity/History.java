@@ -24,15 +24,15 @@ public class History {
     private int portion;
 
     @ManyToOne
-    @JoinColumn(name="user_id")
-    private User user;
+    @JoinColumn(name="member_id")
+    private Member member;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
 
-    public History(User user, LocalDateTime time, Recipe recipe) {
-        this.user = user;
+    public History(Member member, LocalDateTime time, Recipe recipe) {
+        this.member = member;
         this.viewAt = time;
         this.name = recipe.getName();
         this.info = recipe.getInfo();

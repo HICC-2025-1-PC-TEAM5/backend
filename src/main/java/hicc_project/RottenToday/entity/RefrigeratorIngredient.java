@@ -20,6 +20,6 @@ public class RefrigeratorIngredient {
     private Ingredient ingredient;
 
     @ManyToOne
-    private User user;
+    private Member member;
 
 }
