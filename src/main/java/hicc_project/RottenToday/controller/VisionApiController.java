@@ -23,7 +23,7 @@ public class VisionApiController {
         this.visionService = visionService;
     }
 
-    @PostMapping("/api/users/fridge/image-to-ingredients")
+    @PostMapping("/api/users/{user_id}/fridge/image-to-ingredients")
     public ResponseEntity<ImageToIngredientResponse> analyzeIngredients(@RequestParam("image") MultipartFile image) throws IOException {
         byte[] imageBytes =image.getBytes();
         ImageToIngredientResponse labels = visionService.detectIngredient(imageBytes);
