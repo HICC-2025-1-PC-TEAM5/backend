@@ -14,7 +14,7 @@ public class User {
     private String name;
 
     @OneToMany(mappedBy = "user")
-    private List<CookHistory> cookHistories = new ArrayList<>();
+    private List<History> cookHistories = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
     private List<Taste> tastes = new ArrayList<>();

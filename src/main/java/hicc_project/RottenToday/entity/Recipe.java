@@ -3,7 +3,6 @@ package hicc_project.RottenToday.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
