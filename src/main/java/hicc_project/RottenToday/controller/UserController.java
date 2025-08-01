@@ -62,9 +62,5 @@ public class UserController {
         return ResponseEntity.ok("ok");
     }
 
-    @DeleteMapping("/api/users/{userId}/history/favorites")
-    public ResponseEntity<String> deleteFavorite(@PathVariable Long userId, @RequestBody FavoriteRequestDto requestDto) {
-        userService.deleteFavorites(userId, requestDto);
-    }
 
 }

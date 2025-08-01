@@ -7,19 +7,19 @@ import java.util.ArrayList;
 import java.util.List;
 @Data
 @Entity
-public class User {
+public class Member {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "member")
     private List<History> cookHistories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "member")
     private List<Taste> tastes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "member")
     private List<Allergy> allergies = new ArrayList<>();
 
     @OneToMany
