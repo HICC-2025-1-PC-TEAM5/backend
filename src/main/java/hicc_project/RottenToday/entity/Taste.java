@@ -5,37 +5,25 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Taste {
+@DiscriminatorValue("TASTE")
+public class Taste extends Recipe {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Appetite type;
 
-    private String name;
-    private String info;
-    private String image;
-    private Long kcal;
-    private Long protein;
-    private Long sodium;
-    private Long carbohydrate;
-    private Long fat;
-    private int portion;
-
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne
-    @JoinColumn(name = "recipe_id")
-    private Recipe recipe;
 
-    protected Taste() {
-        // JPA를 위한 기본 생성자
-    }
 
-    public Taste(Long id, Appetite type, Recipe recipe){
+    protected Taste() {}
+
+    public Taste(Long id, Appetite type, Recipe recipe, Member member){
         this.id = id;
         this.type = type;
+        this.member = member;
         this.name = recipe.getName();
         this.info = recipe.getInfo();
         this.image = recipe.getImage();

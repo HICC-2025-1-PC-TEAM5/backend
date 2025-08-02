@@ -27,7 +27,7 @@ public class UserController {
 
     @PostMapping("/api/users/{userId}/preference")
     public ResponseEntity<String> updateUserPreference(@PathVariable Long userId, @RequestBody RecipeRequestDto requestDto) {
-        userService.updateTaste(requestDto.getRecipeId(), requestDto.getType());
+        userService.updateTaste(userId, requestDto.getRecipeId(), requestDto.getType());
         return ResponseEntity.ok("ok");
     }
 
