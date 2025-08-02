@@ -16,9 +16,9 @@ public class Ingredient {
     @OneToMany(mappedBy = "ingredient")
     private List<Allergy> allergies = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(mappedBy = "ingredient")
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(mappedBy = "ingredient")
     private List<RefrigeratorIngredient> refrigeratorIngredients = new ArrayList<>();
 }

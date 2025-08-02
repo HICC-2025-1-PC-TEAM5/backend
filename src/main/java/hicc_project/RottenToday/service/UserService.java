@@ -40,11 +40,12 @@ public class UserService {
         return new TasteRecipeListResponse(tasteRecipeResponseList);
     }
 
-    public void updateTaste(Long recipeId, Appetite type) {
+    public void updateTaste(Long userId, Long recipeId, Appetite type) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
-
-        Taste taste = new Taste(recipeId, type, recipe);
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        Taste taste = new Taste(recipeId, type, recipe, member);
         tasteRepository.save(taste);
     }
 

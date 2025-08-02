@@ -8,25 +8,22 @@ import java.util.List;
 
 @Data
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "dtype")
 public class Recipe {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String info;
-    private String image;
-    private Long kcal;
-    private Long protein;
-    private Long sodium;
-    private Long carbohydrate;
-    private Long fat;
-    private int portion;
+    protected String name;
+    protected String info;
+    protected String image;
+    protected Long kcal;
+    protected Long protein;
+    protected Long sodium;
+    protected Long carbohydrate;
+    protected Long fat;
+    protected int portion;
 
-    @OneToMany(mappedBy = "recipe")
-    private List<History> cookHistories = new ArrayList<>();
-
-    @OneToMany(mappedBy = "recipe")
-    private List<Taste> tastes = new ArrayList<>();
 
     @OneToMany(mappedBy = "recipe")
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();;

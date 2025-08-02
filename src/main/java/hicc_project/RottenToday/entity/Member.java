@@ -22,6 +22,6 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Allergy> allergies = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(mappedBy = "member")
     private List<RefrigeratorIngredient> refrigeratorIngredients = new ArrayList<>();
 }
