@@ -8,11 +8,11 @@ import java.util.List;
 
 @Data
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "dtype")
 public class Recipe {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private boolean isUsed = false;
 
     protected String name;
     protected String info;
@@ -27,4 +27,7 @@ public class Recipe {
 
     @OneToMany(mappedBy = "recipe")
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();;
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeStep> recipeSteps = new ArrayList<>();
 }
