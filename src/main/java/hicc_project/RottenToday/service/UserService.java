@@ -9,6 +9,7 @@ import hicc_project.RottenToday.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,9 +44,10 @@ public class UserService {
     public void updateTaste(Long userId, Long recipeId, Appetite type) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
+        recipe.setUsed(true); //레시피 사용된거는 디비에서 안지워지게 설정하기 위함
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        Taste taste = new Taste(recipeId, type, recipe, member);
+        Taste taste = new Taste(type, recipe, member);
         tasteRepository.save(taste);
     }
 
@@ -59,11 +61,13 @@ public class UserService {
         return historyListResponse;
     }
 
+    @Transactional
     public void updateHistory(Long userId, Long recipeId) {
         LocalDateTime time = LocalDateTime.now();
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
+        recipe.setUsed(true);   //레시피 사용된거는 디비에서 안지워지게 설정하기 위함
         History history = new History(member, time, recipe);
         historyRepository.save(history);
     }
