@@ -5,8 +5,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@DiscriminatorValue("TASTE")
-public class Taste extends Recipe {
+public class Taste {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -16,23 +15,18 @@ public class Taste extends Recipe {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @ManyToOne
+    @JoinColumn(name = "recipe_id")
+    private Recipe recipe;
+
 
 
     protected Taste() {}
 
-    public Taste(Long id, Appetite type, Recipe recipe, Member member){
-        this.id = id;
+    public Taste(Appetite type, Recipe recipe, Member member){
         this.type = type;
         this.member = member;
-        this.name = recipe.getName();
-        this.info = recipe.getInfo();
-        this.image = recipe.getImage();
-        this.kcal = recipe.getKcal();
-        this.protein = recipe.getProtein();
-        this.sodium = recipe.getSodium();
-        this.carbohydrate = recipe.getCarbohydrate();
-        this.fat = recipe.getFat();
-        this.portion = recipe.getPortion();
+        this.recipe = recipe;
     }
 
 }
