@@ -2,10 +2,13 @@ package hicc_project.RottenToday.controller;
 
 import hicc_project.RottenToday.dto.RecipeDetailResponse;
 import hicc_project.RottenToday.dto.RecipeRequestDto;
+import hicc_project.RottenToday.dto.RecipeResponseDto;
 import hicc_project.RottenToday.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class RecipeController {
@@ -28,4 +31,11 @@ public class RecipeController {
         recipeService.addfavorite(userId, recipeId, recipeRequestDto.getType());
         return ResponseEntity.ok("ok");
     }
+
+    @PostMapping("/api/users/recipes")
+    public ResponseEntity<List<RecipeResponseDto>> recommendRecipe(@RequestBody List<String> ingredients) {
+        List<RecipeResponseDto> recipeByIngredients = recipeService.getRecipeByIngredients(ingredients);
+        return ResponseEntity.ok(recipeByIngredients);
+    }
+
 }
