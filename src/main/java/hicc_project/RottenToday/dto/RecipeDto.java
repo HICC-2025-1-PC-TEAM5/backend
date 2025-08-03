@@ -23,6 +23,21 @@ public class RecipeDto {
     @JsonProperty("RCP_PAT2")
     private String RCP_PAT2;
 
+    @JsonProperty("INFO_NA")
+    private Long INFO_NA;
+
+    @JsonProperty("INFO_PRO")
+    private Long INFO_PRO;
+
+    @JsonProperty("INFO_CAR")
+    private Long INFO_CAR;
+
+    @JsonProperty("INFO_ENG")
+    private Long INFO_ENG;
+
+    @JsonProperty("INFO_FAT")
+    private Long INFO_FAT;
+
     @JsonProperty("MANUAL01")
     private String MANUAL01;
     @JsonProperty("MANUAL_IMG01")

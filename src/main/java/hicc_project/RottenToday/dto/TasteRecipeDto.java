@@ -15,7 +15,6 @@ public class TasteRecipeDto {
     private String name;
     private String image;
     private List<String> ingredients;
-    private int portion;
     private Long kcal;
     private Long protein;
     private Long sodium;
@@ -29,7 +28,6 @@ public class TasteRecipeDto {
         this.ingredients =recipe.getRecipeIngredients().stream()
                 .map(recipeIngredient -> recipeIngredient.getIngredient().getName())
                 .collect(Collectors.toList());
-        this.portion = recipe.getPortion();
         this.kcal = recipe.getKcal();
         this.protein = recipe.getProtein();
         this.sodium = recipe.getSodium();
