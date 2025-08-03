@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 public class RecipeResponseDto {
     private String name;
+    private String type;
     private String ingredients;
     private String mainImage;
     private List<RecipeStep> steps;
@@ -19,6 +20,7 @@ public class RecipeResponseDto {
         res.setName(dto.getRCP_NM());
         res.setIngredients(dto.getRCP_PARTS_DTLS());
         res.setMainImage(dto.getATT_FILE_NO_MAIN());
+        res.setType(dto.getRCP_PAT2());
         res.setSteps(dto.getRecipeSteps());
         return res;
     }

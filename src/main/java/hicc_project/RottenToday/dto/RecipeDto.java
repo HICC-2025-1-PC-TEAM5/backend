@@ -20,6 +20,9 @@ public class RecipeDto {
     @JsonProperty("ATT_FILE_NO_MAIN")
     private String ATT_FILE_NO_MAIN;
 
+    @JsonProperty("RCP_PAT2")
+    private String RCP_PAT2;
+
     @JsonProperty("MANUAL01")
     private String MANUAL01;
     @JsonProperty("MANUAL_IMG01")
