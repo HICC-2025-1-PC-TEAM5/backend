@@ -28,12 +28,15 @@ public class UserService {
     }
 
     public TasteRecipeListResponse getTaste(Long userId) {
-        List<Recipe> recipes = tasteRepository.findByUserId(userId);
+        List<Taste> tastes = tasteRepository.findByUsersId(userId); // ✅ 수정됨
         List<TasteRecipeResponse> tasteRecipeResponseList = new ArrayList<>();
-        for (Recipe recipe : recipes) {
+
+        for (Taste taste : tastes) {
+            Recipe recipe = taste.getRecipe(); // Taste에서 Recipe 가져오기
             TasteRecipeDto tasteRecipeDto = new TasteRecipeDto(recipe);
             tasteRecipeResponseList.add(new TasteRecipeResponse(tasteRecipeDto));
         }
+
         return new TasteRecipeListResponse(tasteRecipeResponseList);
     }
 

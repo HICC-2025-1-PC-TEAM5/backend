@@ -1,14 +1,21 @@
 package hicc_project.RottenToday.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 public class Taste {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     private Appetite type;
 
     private String name;
@@ -22,17 +29,17 @@ public class Taste {
     private int portion;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_id")
+    private Member users;
 
-    // ✅ 이 부분이 필요합니다
     @ManyToOne
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
 
-    public Taste(Long id, Appetite type, Recipe recipe){
+    public Taste(Long id, Appetite type, Recipe recipe) {
         this.id = id;
         this.type = type;
+        this.recipe = recipe;
         this.name = recipe.getName();
         this.info = recipe.getInfo();
         this.image = recipe.getImage();
@@ -42,8 +49,5 @@ public class Taste {
         this.carbohydrate = recipe.getCarbohydrate();
         this.fat = recipe.getFat();
         this.portion = recipe.getPortion();
-        this.recipe = recipe; // 🔑 이 부분도 초기화 필요
     }
-
-    public Taste() {}
 }

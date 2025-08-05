@@ -14,8 +14,8 @@ public class CookHistory {
     private boolean favorite;
 
     @ManyToOne
-    @JoinColumn(name="user_id")
-    private User user;
+    @JoinColumn(name="member_id")
+    private Member users;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")

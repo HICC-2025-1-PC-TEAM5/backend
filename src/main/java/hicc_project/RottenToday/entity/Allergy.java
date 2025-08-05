@@ -6,16 +6,15 @@ import lombok.Data;
 @Data
 @Entity
 public class Allergy {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_id")
+    private Member users;
 
     @ManyToOne
     @JoinColumn(name = "ingredient_id")
     private Ingredient ingredient;
-
-
 }

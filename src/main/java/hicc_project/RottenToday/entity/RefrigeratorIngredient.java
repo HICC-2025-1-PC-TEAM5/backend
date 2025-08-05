@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 public class RefrigeratorIngredient {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,6 +21,6 @@ public class RefrigeratorIngredient {
     private Ingredient ingredient;
 
     @ManyToOne
-    private User user;
-
+    @JoinColumn(name = "member_id")
+    private Member member;
 }
