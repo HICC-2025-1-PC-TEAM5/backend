@@ -12,13 +12,9 @@ import java.util.List;
 
 @RestController
 public class RecipeController {
-
+    @Autowired
     private RecipeService recipeService;
 
-    @Autowired
-    public RecipeController(RecipeService recipeService) {
-        this.recipeService = recipeService;
-    }
 
     @GetMapping("/api/users/{userId}/recipes/{recipeId}")
     public ResponseEntity<RecipeDetailResponse> getRecipeDetail(@PathVariable Long userId, @PathVariable Long recipeId) {
@@ -37,5 +33,7 @@ public class RecipeController {
         List<RecipeResponseDto> recipeByIngredients = recipeService.getRecipeByIngredients(ingredients);
         return ResponseEntity.ok(recipeByIngredients);
     }
+
+
 
 }
