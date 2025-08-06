@@ -12,12 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
-    private final UserService userService;
-
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private UserService userService;
+
 
     @GetMapping("/api/users/{userId}/preference")
     public ResponseEntity<TasteRecipeListResponse> getUserPreference(@PathVariable Long userId) {
