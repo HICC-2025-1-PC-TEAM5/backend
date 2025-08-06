@@ -10,15 +10,8 @@ import java.util.List;
 public class Ingredient {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
+    private String nameEnglish;
 
-    @OneToMany(mappedBy = "ingredient")
-    private List<Allergy> allergies = new ArrayList<>();
 
-    @OneToMany(mappedBy = "ingredient")
-    private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
-
-    @OneToMany(mappedBy = "ingredient")
-    private List<RefrigeratorIngredient> refrigeratorIngredients = new ArrayList<>();
 }

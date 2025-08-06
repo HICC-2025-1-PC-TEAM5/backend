@@ -14,7 +14,10 @@ public class RefrigeratorIngredient {
 
     private String unit;
     private int quantity;
-    private LocalDateTime expire_date;
+    private StorageCondition type; //보관 상태
+
+    private LocalDateTime input_date;  //냉장고 반입 시점
+    private LocalDateTime expire_date; //소비기한
 
     @ManyToOne
     private Ingredient ingredient;
