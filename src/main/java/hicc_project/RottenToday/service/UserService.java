@@ -4,35 +4,33 @@ import hicc_project.RottenToday.dto.TasteRecipeDto;
 import hicc_project.RottenToday.dto.TasteRecipeListResponse;
 import hicc_project.RottenToday.dto.TasteRecipeResponse;
 import hicc_project.RottenToday.entity.Appetite;
+import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.entity.Recipe;
 import hicc_project.RottenToday.entity.Taste;
+import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.TasteRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
-    TasteRepository tasteRepository;
-    RecipeRepository recipeRepository;
 
-    @Autowired
-    public UserService(TasteRepository tasteRepository, RecipeRepository recipeRepository) {
-        this.tasteRepository = tasteRepository;
-        this.recipeRepository = recipeRepository;
-    }
+    private final TasteRepository tasteRepository;
+    private final RecipeRepository recipeRepository;
+    private final MemberRepository memberRepository; // 추가됨
 
     public TasteRecipeListResponse getTaste(Long userId) {
-        List<Taste> tastes = tasteRepository.findByUsersId(userId); // ✅ 수정됨
+        List<Taste> tastes = tasteRepository.findByUsersId(userId); // 수정됨
         List<TasteRecipeResponse> tasteRecipeResponseList = new ArrayList<>();
 
         for (Taste taste : tastes) {
-            Recipe recipe = taste.getRecipe(); // Taste에서 Recipe 가져오기
+            Recipe recipe = taste.getRecipe();
             TasteRecipeDto tasteRecipeDto = new TasteRecipeDto(recipe);
             tasteRecipeResponseList.add(new TasteRecipeResponse(tasteRecipeDto));
         }
@@ -50,5 +48,12 @@ public class UserService {
 
     public void deleteTaste(Long tasteId) {
         tasteRepository.deleteById(tasteId);
+    }
+
+    // 회원 탈퇴 기능 추가
+    public void deleteMember(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        memberRepository.delete(member);
     }
 }

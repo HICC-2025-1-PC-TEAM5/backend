@@ -1,7 +1,7 @@
 package hicc_project.RottenToday.auth;
 
 import hicc_project.RottenToday.entity.Member;
-import hicc_project.RottenToday.repository.UserRepository;
+import hicc_project.RottenToday.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -15,11 +15,11 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        Member member = userRepository.findByEmail(email)
+        Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다: " + email));
 
         return new User(
