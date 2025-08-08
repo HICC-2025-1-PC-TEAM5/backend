@@ -1,6 +1,6 @@
 package hicc_project.RottenToday.config;
 
-import hicc_project.RottenToday.auth.OAuth2SuccessHandler;
+//import hicc_project.RottenToday.auth.OAuth2SuccessHandler;
 import hicc_project.RottenToday.auth.UserDetailsServiceImpl;
 import hicc_project.RottenToday.jwt.JwtAuthenticationFilter;
 import hicc_project.RottenToday.jwt.JwtTokenProvider;
@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+//    private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final UserDetailsServiceImpl userDetailsServiceImpl;
 
     @Bean
@@ -35,12 +35,13 @@ public class SecurityConfig {
                                 "/",
                                 "/api/auth/**",   // 로그인, 토큰 재발급, 로그아웃
                                 "/login/oauth2/**", // Google 리다이렉트 (code 반환)
-                                "/api/test/public" // 테스트용 공개 API
+                                "/api/test/public", // 테스트용 공개 API
+                                "/oauth2/authorization/google/**"
                         ).permitAll()
                         .anyRequest().authenticated()
-                )
+  /*              )
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler)
+                        .successHandler(oAuth2SuccessHandler)*/
                 );
 
         // JWT 필터 적용
