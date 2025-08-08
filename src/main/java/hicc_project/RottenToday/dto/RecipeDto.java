@@ -24,19 +24,19 @@ public class RecipeDto {
     private String RCP_PAT2;
 
     @JsonProperty("INFO_NA")
-    private Long INFO_NA;
+    private Double INFO_NA;
 
     @JsonProperty("INFO_PRO")
-    private Long INFO_PRO;
+    private Double INFO_PRO;
 
     @JsonProperty("INFO_CAR")
-    private Long INFO_CAR;
+    private Double INFO_CAR;
 
     @JsonProperty("INFO_ENG")
-    private Long INFO_ENG;
+    private Double INFO_ENG;
 
     @JsonProperty("INFO_FAT")
-    private Long INFO_FAT;
+    private Double INFO_FAT;
 
     @JsonProperty("MANUAL01")
     private String MANUAL01;

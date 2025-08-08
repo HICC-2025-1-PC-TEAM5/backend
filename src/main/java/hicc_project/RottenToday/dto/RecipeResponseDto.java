@@ -11,11 +11,11 @@ import java.util.List;
 public class RecipeResponseDto {
     private String name;
     private String type;
-    private Long kcal;
-    private Long protein;
-    private Long sodium;
-    private Long carbohydrate;
-    private Long fat;
+    private Double kcal;
+    private Double protein;
+    private Double sodium;
+    private Double carbohydrate;
+    private Double fat;
     private String ingredients;
     private String mainImage;
     private List<RecipeStep> steps;
