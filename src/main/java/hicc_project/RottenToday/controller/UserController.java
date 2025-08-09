@@ -1,9 +1,6 @@
 package hicc_project.RottenToday.controller;
 
-import hicc_project.RottenToday.dto.FavoriteRequestDto;
-import hicc_project.RottenToday.dto.HistoryListResponse;
-import hicc_project.RottenToday.dto.RecipeRequestDto;
-import hicc_project.RottenToday.dto.TasteRecipeListResponse;
+import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +32,24 @@ public class UserController {
 
     }
 
+    @GetMapping("/api/users/{userId}/preference/allergy")
+    public ResponseEntity<AllergyListResponse> getAllergy(@PathVariable Long userId) {
+        AllergyListResponse response = userService.getAllergy(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/api/users/{userId}/preference/allergy")
+    public ResponseEntity<String> addAllergy(@PathVariable Long userId, @RequestBody IngredientDto request) {
+        userService.addAllergy(userId, request);
+        return ResponseEntity.ok("ok");
+    }
+
+    @DeleteMapping("/api/users/{userId}/preference/allergy/{allergyId}")
+    public ResponseEntity<String> deleteAllergy(@PathVariable Long userId, @PathVariable Long allergyId) {
+        userService.deleteAllergy(allergyId);
+        return ResponseEntity.ok("ok");
+    }
+
     @GetMapping("/api/users/{userId}/history")
     public ResponseEntity<HistoryListResponse> getHistory(@PathVariable Long userId) {
         HistoryListResponse history = userService.getHistory(userId);
@@ -58,6 +73,7 @@ public class UserController {
         userService.updateFavorites(userId, requestDto);
         return ResponseEntity.ok("ok");
     }
+
 
 
 }

@@ -12,12 +12,14 @@ public class RefrigeratorIngredient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String name;
     private String unit;
     private int quantity;
     private StorageCondition type; //보관 상태
 
     private LocalDateTime input_date;  //냉장고 반입 시점
     private LocalDateTime expire_date; //소비기한
+    private Category category;
 
     @ManyToOne
     private Ingredient ingredient;
