@@ -71,10 +71,10 @@ public class IngredientService {
         }
     }
 
-    public void deleteIngredient(Long memberId, RefridgeIngredientRequest request) {
+    public void deleteIngredient(Long memberId, Long refridgeId) {
         List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
         for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
-            if (refrigeratorIngredient.getId().equals(request.getId())) {
+            if (refrigeratorIngredient.getId().equals(refridgeId)) {
                 refrigeratorIngredientRepository.delete(refrigeratorIngredient);
             }
         }
