@@ -1,7 +1,17 @@
 package hicc_project.RottenToday.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hicc_project.RottenToday.dto.RefridgeIngredientRequest;
+import hicc_project.RottenToday.dto.RefrigeratorIngredientResponse;
+import hicc_project.RottenToday.entity.*;
+import hicc_project.RottenToday.repository.IngredientRepository;
+import hicc_project.RottenToday.repository.MemberRepository;
+import hicc_project.RottenToday.repository.RefrigeratorIngredientRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,14 +20,124 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class IngredientService {
 
+    RefrigeratorIngredientRepository refrigeratorIngredientRepository;
+    IngredientRepository ingredientRepository;
+    MemberRepository memberRepository;
 
-    public String detectIngredient(MultipartFile file) throws IOException, InterruptedException {
+    @Autowired
+    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository) {
+        this.refrigeratorIngredientRepository = refrigeratorIngredientRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.memberRepository = memberRepository;
+    }
+
+    public RefrigeratorIngredientResponse getRefidge(Long memberId) {
+        List<RefrigeratorIngredient> findRefrigeIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
+        RefrigeratorIngredientResponse response = new RefrigeratorIngredientResponse(findRefrigeIngredients);
+        return response;
+    }
+
+
+    public void addRefridgeIngredient(Long memberId, RefrigeratorIngredientResponse request) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 존재x"));
+        for (RefrigeratorIngredient refrigeratorIngredient : request.getRefrigeratorIngredient()) {
+            Optional<Ingredient> byName = ingredientRepository.findByName(refrigeratorIngredient.getName());
+            if (byName.isPresent()) {
+                refrigeratorIngredient.setIngredient(byName.get());
+            }
+            refrigeratorIngredient.setMember(member);
+            refrigeratorIngredientRepository.save(refrigeratorIngredient);
+        }
+    }
+
+    public void updateRefridgeIngredient(Long memberId, RefridgeIngredientRequest request) {
+        List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
+        for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
+            if (refrigeratorIngredient.getId().equals(request.getId())) {
+                if (request.getQuantity() == 0) {
+                    refrigeratorIngredientRepository.delete(refrigeratorIngredient);
+                } else {
+                    refrigeratorIngredient.setQuantity(request.getQuantity());
+                }
+            }
+        }
+    }
+
+    public void deleteIngredient(Long memberId, Long refridgeId) {
+        List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
+        for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
+            if (refrigeratorIngredient.getId().equals(refridgeId)) {
+                refrigeratorIngredientRepository.delete(refrigeratorIngredient);
+            }
+        }
+    }
+
+    private int measureExpireDate(Category category, StorageCondition condition) {
+        int expireDate = 0;
+
+        switch (category) {
+            case VEGETABLE : if (condition == StorageCondition.NORMAL) {expireDate = 1; break;}
+            else if (condition == StorageCondition.REFRIGERATED) {expireDate = 5; break;}
+            else if (condition == StorageCondition.FROZEN) {expireDate = 25; break;}
+            break;
+            case FRUIT: if (condition == StorageCondition.NORMAL) {expireDate = 5; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 10; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 60; break;}
+                break;
+            case GRAIN: if (condition == StorageCondition.NORMAL) {expireDate = 270; break;}
+                break;
+            case MEAT: if (condition == StorageCondition.NORMAL) {break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 3; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 240; break;}
+                break;
+            case SEAFOOD: if (condition == StorageCondition.NORMAL) {break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 2; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 120; break;}
+                break;
+            case EGG: if (condition == StorageCondition.NORMAL) {expireDate = 14; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 30; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 270; break;}
+                break;
+            case DAIRY: if (condition == StorageCondition.NORMAL) {break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 7; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 45; break;}
+                break;
+            case BEANS: if (condition == StorageCondition.NORMAL) {expireDate = 270; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {break;}
+                else if (condition == StorageCondition.FROZEN) {break;}
+                break;
+            case OIL: if (condition == StorageCondition.NORMAL) {expireDate = 270; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {break;}
+                else if (condition == StorageCondition.FROZEN) {break;}
+                break;
+            case CONDIMENT: if (condition == StorageCondition.NORMAL) {expireDate = 1000; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {break;}
+                else if (condition == StorageCondition.FROZEN) {break;}
+                break;
+            case PROCESSED: break;
+            case DRINK: if (condition == StorageCondition.NORMAL) {expireDate = 135; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 4; break;}
+                else if (condition == StorageCondition.FROZEN) {break;}
+                break;
+            case ETC: break;
+            default: break;
+
+
+        }
+        return expireDate;
+    }
+
+
+
+    public List<List<String>> detectIngredient(MultipartFile file) throws IOException, InterruptedException {
 
 
         String contentType = file.getContentType();
@@ -47,7 +167,7 @@ public class IngredientService {
         }
 
 
-        String response = sendtoOCRApi(jpgFile);
+        List<List<String>> response = sendtoOCRApi(jpgFile);
 
         heicFile.delete();
         jpgFile.delete();
@@ -55,7 +175,7 @@ public class IngredientService {
         return response;
     }
 
-    private static String sendtoOCRApi(File jpgFile) {
+    private static List<List<String>> sendtoOCRApi(File jpgFile) {
         String apiURL = "https://nn03butcil.apigw.ntruss.com/custom/v1/44921/08846e81b3a87fd9cc39d4023a75dcff47a6588055793a5f065212e668c94fe6/general";
         String secretKey = "aG50ckFMUkVTSUhxUXVHSG9waFNvRG9yZ1pDbUpTSU8=";
 
@@ -103,8 +223,34 @@ public class IngredientService {
                 response.append(inputLine);
             }
             br.close();
+            String responseString = response.toString();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(responseString);
 
-            return response.toString();
+            List<List<String>> lines = new ArrayList<>();
+            List<String> currentLine = new ArrayList<>();
+
+            JsonNode fields = root.get("images").get(0).get("fields");
+            System.out.println(fields.toString());
+
+            for (JsonNode field : fields) {
+                System.out.println(field.toString());
+                String inferText = field.path("inferText").asText();
+                boolean lineBreak = field.path("lineBreak").asBoolean();
+
+                currentLine.add(inferText);
+                if (lineBreak) {
+                    lines.add(currentLine);
+                    currentLine = new ArrayList<>();
+                }
+
+            }
+
+            if (!currentLine. isEmpty()) {
+                lines.add(currentLine);
+            }
+            System.out.println("d");
+            return lines;
         } catch (Exception e) {
             throw new RuntimeException("이미지 변환 실패");
         }
@@ -147,4 +293,6 @@ public class IngredientService {
         out.flush();
     
     }
+
+
 }

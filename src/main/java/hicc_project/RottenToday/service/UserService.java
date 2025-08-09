@@ -2,10 +2,7 @@ package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
-import hicc_project.RottenToday.repository.HistoryRepository;
-import hicc_project.RottenToday.repository.RecipeRepository;
-import hicc_project.RottenToday.repository.TasteRepository;
-import hicc_project.RottenToday.repository.MemberRepository;
+import hicc_project.RottenToday.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,13 +19,17 @@ public class UserService {
     TasteRepository tasteRepository;
     RecipeRepository recipeRepository;
     HistoryRepository historyRepository;
+    AllergyRepository allergyRepository;
+    IngredientRepository ingredientRepository;
 
     @Autowired
-    public UserService(TasteRepository tasteRepository, RecipeRepository recipeRepository, HistoryRepository historyRepository, MemberRepository memberRepository) {
+    public UserService(TasteRepository tasteRepository, RecipeRepository recipeRepository, HistoryRepository historyRepository, MemberRepository memberRepository, AllergyRepository allergyRepository, IngredientRepository ingredientRepository) {
         this.tasteRepository = tasteRepository;
         this.recipeRepository = recipeRepository;
         this.historyRepository = historyRepository;
         this.memberRepository = memberRepository;
+        this.allergyRepository = allergyRepository;
+        this.ingredientRepository = ingredientRepository;
     }
 
     public TasteRecipeListResponse getTaste(Long userId) {
@@ -85,6 +86,33 @@ public class UserService {
         History history = historyRepository.findById(requestDto.getRecipeId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         history.setFavorite(requestDto.isType());
         historyRepository.save(history);
+
+    }
+
+    public AllergyListResponse getAllergy(Long userId) {
+        List<AllergyResponse> allergyResponseList = new ArrayList<>();
+        for (Allergy allergy : allergyRepository.findByMemberId(userId)) {
+            AllergyResponse allergyResponse = new AllergyResponse(allergy);
+            allergyResponseList.add(allergyResponse);
+        }
+
+
+        return new AllergyListResponse(allergyResponseList);
+    }
+
+    public void addAllergy(Long userId, IngredientDto request) {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다"));
+        Ingredient ingredient = ingredientRepository.findById(request.getIngredientId()).orElseThrow(() -> new EntityNotFoundException("해당 재료를 찾을 수 없습니다"));
+        Allergy allergy = new Allergy(member, ingredient);
+        allergyRepository.save(allergy);
+    }
+
+    public void deleteAllergy(Long allergyId) {
+        if (allergyRepository.existsById(allergyId)) {
+            allergyRepository.deleteById(allergyId);
+        } else {
+            throw new EntityNotFoundException("해당 알러지 정보가 존재하지 않습니다.");
+        }
 
     }
 }
