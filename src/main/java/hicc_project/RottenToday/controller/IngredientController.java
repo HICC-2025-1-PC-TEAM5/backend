@@ -46,10 +46,14 @@ public class IngredientController {
         return ResponseEntity.ok("ok");
     }
 
-    @DeleteMapping("/api/users/{userId}/frigge/ingredients")
-    public ResponseEntity<String> deleteRefrigeratorIngredient(@PathVariable Long userId, @RequestBody RefridgeIngredientRequest request) {
-        ingredientService.deleteIngredient(userId, request);
+    @DeleteMapping("/api/users/{userId}/fridge/ingredients/{refrigeratorId}")
+    public ResponseEntity<String> deleteRefrigeratorIngredient(@PathVariable Long userId, @PathVariable Long refrigeratorId) {
+        ingredientService.deleteIngredient(userId, refrigeratorId);
         return ResponseEntity.ok("ok");
 
     }
+
+
+    @GetMapping("/api/users/{userId}/fridge/ingredients/{ingredientId}")
+    public Res
 }
