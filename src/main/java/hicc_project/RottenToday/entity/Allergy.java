@@ -17,6 +17,8 @@ public class Allergy {
     @JoinColumn(name = "ingredient_id")
     private Ingredient ingredient;
 
+    protected Allergy() {}
+
     public Allergy(Member member, Ingredient ingredient) {
 
     }

@@ -2,8 +2,7 @@ package hicc_project.RottenToday.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hicc_project.RottenToday.dto.RefridgeIngredientRequest;
-import hicc_project.RottenToday.dto.RefrigeratorIngredientResponse;
+import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.IngredientRepository;
 import hicc_project.RottenToday.repository.MemberRepository;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -31,13 +30,18 @@ public class IngredientService {
     RefrigeratorIngredientRepository refrigeratorIngredientRepository;
     IngredientRepository ingredientRepository;
     MemberRepository memberRepository;
+    OpenAiService openAiService;
 
     @Autowired
-    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository) {
+    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository, OpenAiService openApiService) {
         this.refrigeratorIngredientRepository = refrigeratorIngredientRepository;
         this.ingredientRepository = ingredientRepository;
         this.memberRepository = memberRepository;
+        this.openAiService = openAiService;
     }
+
+
+
 
     public RefrigeratorIngredientResponse getRefidge(Long memberId) {
         List<RefrigeratorIngredient> findRefrigeIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
@@ -49,10 +53,8 @@ public class IngredientService {
     public void addRefridgeIngredient(Long memberId, RefrigeratorIngredientResponse request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 존재x"));
         for (RefrigeratorIngredient refrigeratorIngredient : request.getRefrigeratorIngredient()) {
-            Optional<Ingredient> byName = ingredientRepository.findByName(refrigeratorIngredient.getName());
-            if (byName.isPresent()) {
-                refrigeratorIngredient.setIngredient(byName.get());
-            }
+            ingredientRepository.findByName(refrigeratorIngredient.getName())
+                    .ifPresent(ingredient -> {refrigeratorIngredient.setIngredient(ingredient);});
             refrigeratorIngredient.setMember(member);
             refrigeratorIngredientRepository.save(refrigeratorIngredient);
         }
@@ -175,7 +177,7 @@ public class IngredientService {
         return response;
     }
 
-    private static List<List<String>> sendtoOCRApi(File jpgFile) {
+    public List<List<String>> sendtoOCRApi(File jpgFile) {
         String apiURL = "https://nn03butcil.apigw.ntruss.com/custom/v1/44921/08846e81b3a87fd9cc39d4023a75dcff47a6588055793a5f065212e668c94fe6/general";
         String secretKey = "aG50ckFMUkVTSUhxUXVHSG9waFNvRG9yZ1pDbUpTSU8=";
 
@@ -224,6 +226,7 @@ public class IngredientService {
             }
             br.close();
             String responseString = response.toString();
+
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(responseString);
 
@@ -231,10 +234,8 @@ public class IngredientService {
             List<String> currentLine = new ArrayList<>();
 
             JsonNode fields = root.get("images").get(0).get("fields");
-            System.out.println(fields.toString());
 
             for (JsonNode field : fields) {
-                System.out.println(field.toString());
                 String inferText = field.path("inferText").asText();
                 boolean lineBreak = field.path("lineBreak").asBoolean();
 
@@ -249,8 +250,12 @@ public class IngredientService {
             if (!currentLine. isEmpty()) {
                 lines.add(currentLine);
             }
+
+
+
             System.out.println("d");
             return lines;
+
         } catch (Exception e) {
             throw new RuntimeException("이미지 변환 실패");
         }
@@ -258,7 +263,7 @@ public class IngredientService {
     }
 
 
-    private static void writeMultiPart(OutputStream out, String jsonMessage, File file, String boundary) throws
+    public void writeMultiPart(OutputStream out, String jsonMessage, File file, String boundary) throws
             IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("--").append(boundary).append("\r\n");
@@ -293,6 +298,8 @@ public class IngredientService {
         out.flush();
     
     }
+
+
 
 
 }
