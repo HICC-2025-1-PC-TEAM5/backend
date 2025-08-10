@@ -1,9 +1,11 @@
 package hicc_project.RottenToday.controller;
 
+import hicc_project.RottenToday.dto.IngredientDto;
 import hicc_project.RottenToday.dto.RefridgeIngredientRequest;
 import hicc_project.RottenToday.dto.RefrigeratorIngredientResponse;
 import hicc_project.RottenToday.entity.RefrigeratorIngredient;
 import hicc_project.RottenToday.service.IngredientService;
+import hicc_project.RottenToday.service.OpenAiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +18,19 @@ import java.util.List;
 public class IngredientController {
 
     private final IngredientService ingredientService;
+    private final OpenAiService openAiService;
 
     @Autowired
-    public IngredientController(IngredientService ingredientService) {
+    public IngredientController(IngredientService ingredientService, OpenAiService openAiService) {
         this.ingredientService = ingredientService;
+        this.openAiService = openAiService;
     }
 
     @PostMapping("/api/users/fridge/receipt-to-ingredients")
-    public ResponseEntity<List<List<String>>> receiptToIngredients(@RequestParam MultipartFile image) throws IOException, InterruptedException {
+    public ResponseEntity<List<IngredientDto>> receiptToIngredients(@RequestParam MultipartFile image) throws IOException, InterruptedException {
         List<List<String>> response = ingredientService.detectIngredient(image);
-        return ResponseEntity.ok(response);
+        List<IngredientDto> chatCompletion = openAiService.getChatCompletion(response.toString());
+        return ResponseEntity.ok(chatCompletion);
     }
 
     @GetMapping("/api/users/{userId}/fridge/ingredients")
@@ -54,6 +59,5 @@ public class IngredientController {
     }
 
 
-    @GetMapping("/api/users/{userId}/fridge/ingredients/{ingredientId}")
-    public Res
+
 }

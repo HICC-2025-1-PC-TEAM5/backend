@@ -22,7 +22,7 @@ public class History {
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
 
-    public History() {}
+    protected History() {}
 
     public History(Member member, LocalDateTime time, Recipe recipe) {
         this.member = member;

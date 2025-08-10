@@ -18,7 +18,7 @@ public class RecipeStep {
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
 
-    public RecipeStep() {}
+    protected RecipeStep() {}
 
     public RecipeStep(int stepNum, String description, String image) {
         this.stepNum = stepNum;
