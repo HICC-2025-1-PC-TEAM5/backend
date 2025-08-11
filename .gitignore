@@ -38,3 +38,4 @@ out/
 
 
 src/main/java/hicc_project/RottenToday/config/OpenAiProperties.java
+src/main/resources/application.properties
