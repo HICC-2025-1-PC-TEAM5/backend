@@ -29,6 +29,96 @@ public class OpenAiService {
         this.webClient = webClientBuilder.baseUrl("https://api.openai.com").build();
     }
 
+    public List<IngredientDto> getimagetoingredient(String message) {
+        String systemPrompt = "아래 이미지 URL을 참고해, 이미지에 보이는 식재료를 모두 식별해 주세요.  \n" +
+                "식재료 중 실제 식재료가 아닌 항목은 제외하고, 남은 식재료는 다음 규칙에 따라 분류해 JSON 형식으로 분류하세요.\n" +
+                "\n" +
+                "- 형식: [{\"name\": \"깐마늘\", \"category\": \"채소류\", \"subcategory\": \"깐마늘\"}, ...]\n" +
+                "- name, category, subcategory 모두 한글로 표기 (영어 인식 시 한글로 변환)  \n" +
+                "- category(대분류) 중 하나만 선택:  \n" +
+                "  채소류, 과일류, 곡류/전분류, 육류, 어패류, 달걀/난류, 유제품, 두류/콩류, 기름/지방류, 조미료/향신료, 가공식품, 음료류, 기타  \n" +
+                "- 육류는 subcategory에 돼지고기, 소고기, 닭고기 등 중분류까지만 표기  \n" +
+                "- 육류 외 식재료는 subcategory에 식재료명 그대로 표기  \n" +
+                "- 식재료가 아니면 제외  \n" +
+                "- 분류 어려우면 category와 subcategory 모두 \"기타\"  \n" +
+                "- name은 이미지 속 식재료명 그대로 표기 (영어는 한글 변환)" +
+                "- 주의 사항은 필요없음, 식재료 배열 json만 출력";
+
+        ChatRequest request = ChatRequest.builder()
+                .model("gpt-4.1")
+                .messages(List.of(
+                        ChatMessage.builder()
+                                .role("system")
+                                .content(systemPrompt)
+                                .build(),
+                        ChatMessage.builder()
+                                .role("user")
+                                .content(message)
+                                .build()
+                ))
+                .maxTokens(2000)
+                .temperature(0.3)
+                .build();
+
+
+        try {
+
+
+            log.info("GPT API 호출 시작 - URL: {}", openAiProperties.getUrl());
+            log.debug("요청 데이터: {}", request);
+
+            ChatResponse response = webClient.post()
+                    .uri("/v1/chat/completions")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + openAiProperties.getKey().trim())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(status -> status.is4xxClientError(), clientResponse -> {
+                        log.error("GPT API 클라이언트 오류 발생: {}", clientResponse.statusCode());
+                        return clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> {
+                                    log.error("오류 응답 본문: {}", errorBody);
+                                    return Mono.error(new RuntimeException("GPT API 클라이언트 오류 (" +
+                                            clientResponse.statusCode() + "): " + errorBody));
+                                });
+                    })
+                    .onStatus(status -> status.is5xxServerError(), serverResponse -> {
+                        log.error("GPT API 서버 오류 발생: {}", serverResponse.statusCode());
+                        return serverResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> {
+                                    log.error("서버 오류 응답 본문: {}", errorBody);
+                                    return Mono.error(new RuntimeException("GPT API 서버 오류 (" +
+                                            serverResponse.statusCode() + "): " + errorBody));
+                                });
+                    })
+                    .bodyToMono(ChatResponse.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();
+
+            log.info("GPT API 응답 수신 완료 = {}", response);
+
+
+
+            String content = response.getChoices().get(0).getMessage().getContent();
+            ObjectMapper mapper = new ObjectMapper();
+            List<IngredientDto> ingredients =
+                    mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
+            log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
+            return ingredients;
+
+        } catch (WebClientRequestException e) {
+            log.error("GPT API 요청 전송 실패", e);
+            throw new RuntimeException("GPT API 요청 전송 실패: " + e.getMessage(), e);
+        } catch (WebClientResponseException e) {
+            log.error("GPT API 응답 오류 - 상태코드: {}, 응답본문: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("GPT API 응답 오류 (" + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            log.error("GPT API 호출 중 예상치 못한 오류", e);
+            throw new RuntimeException("GPT API 호출 중 예상치 못한 오류 발생: " + e.getMessage(), e);
+        }
+    }
+
+
 
     public List<IngredientDto> getChatCompletion(String message) {
         String systemPrompt = "당신은 영수증에 명시된 글자들을 보고 식재료를 분류하는 AI입니다.\n" +

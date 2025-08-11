@@ -13,6 +13,7 @@ public class Ingredient {
     private String name;
     private String nameEnglish;
 
+
     private Category category;
 
 
