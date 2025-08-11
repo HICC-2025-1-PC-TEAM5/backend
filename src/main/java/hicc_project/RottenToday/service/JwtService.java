@@ -1,3 +1,4 @@
+// src/main/java/hicc_project/RottenToday/service/JwtService.java
 package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.jwt.JwtProperties;
@@ -89,4 +90,3 @@ public class JwtService {
         return new TokenPair(newAccess, newRefresh, props.getAccessTtlSeconds(), props.getRefreshTtlSeconds());
     }
 }
-

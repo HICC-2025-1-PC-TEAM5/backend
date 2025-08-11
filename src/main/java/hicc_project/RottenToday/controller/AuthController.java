@@ -4,6 +4,7 @@ package hicc_project.RottenToday.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.dto.auth.AuthResponseDto;
 import hicc_project.RottenToday.service.JwtService;
+import hicc_project.RottenToday.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +33,9 @@ public class AuthController {
 
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
-    private static final ObjectMapper OM = new ObjectMapper();
+    private final MemberService memberService;
 
+    private static final ObjectMapper OM = new ObjectMapper();
     private static final String REDIRECT_URI = "http://localhost:8080/api/v2/oauth2/google/callback";
 
     @GetMapping("/google")
@@ -115,22 +117,33 @@ public class AuthController {
                     restTemplate.exchange(userinfoUrl, HttpMethod.GET, new HttpEntity<>(uh), String.class);
             Map<String, Object> userInfo = OM.readValue(userInfoRes.getBody(), Map.class);
 
-            // 3) 우리 JWT 발급
-            String subject = String.valueOf(userInfo.getOrDefault("id", "unknown"));
+            // 3) 멤버 upsert → tokenVersion 읽기
+            String externalId = String.valueOf(userInfo.getOrDefault("id", "unknown"));
+            String email      = (String) userInfo.get("email");
+            String name       = (String) userInfo.get("name");
+            String picture    = (String) userInfo.get("picture");
+
+            var member = memberService.upsertGoogleUser(externalId, email, name, picture);
+            long tver = member.getTokenVersion();
+
+            // 4) 우리 JWT 발급 (subject=memberId, tver 포함)
+            String subject = String.valueOf(member.getId());
             Map<String, Object> claims = Map.of(
                     "provider", "google",
-                    "email", userInfo.get("email"),
-                    "name",  userInfo.get("name")
+                    "email", email,
+                    "name",  name,
+                    "mid",   member.getId(),
+                    "tver",  tver
             );
             var pair = jwtService.issue(subject, claims);
 
-            // 4) 응답 DTO (구글 RT는 노출 안 함)
+            // 5) 응답 DTO
             AuthResponseDto body = new AuthResponseDto(
                     new AuthResponseDto.UserDto(
-                            (String) userInfo.get("id"),
-                            (String) userInfo.get("email"),
-                            (String) userInfo.get("name"),
-                            (String) userInfo.get("picture")
+                            String.valueOf(member.getId()), // 내부 memberId로 내려도 편함
+                            email,
+                            name,
+                            picture
                     ),
                     new AuthResponseDto.AppJwtDto(
                             pair.accessToken(),
@@ -147,7 +160,7 @@ public class AuthController {
                     )
             );
 
-            // 5) 쿠키 세팅: refresh_token 유지, refreshToken(legacy) 제거
+            // 6) 쿠키 세팅: refresh_token 유지, refreshToken(legacy) 제거
             HttpHeaders out = new HttpHeaders();
             out.setCacheControl(CacheControl.noStore());
             out.add("Pragma", "no-cache");
@@ -161,14 +174,8 @@ public class AuthController {
                     .build();
             out.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-            // legacy 쿠키 제거(있으면 삭제)
             ResponseCookie killLegacy = ResponseCookie.from("refreshToken", "")
-                    .httpOnly(true)
-                    .secure(false)
-                    .sameSite("Lax")
-                    .path("/")
-                    .maxAge(0)
-                    .build();
+                    .httpOnly(true).secure(false).sameSite("Lax").path("/").maxAge(0).build();
             out.add(HttpHeaders.SET_COOKIE, killLegacy.toString());
 
             return new ResponseEntity<>(body, out, HttpStatus.OK);
@@ -183,3 +190,5 @@ public class AuthController {
         }
     }
 }
+/*테스트용 나중에 삭제*/
+
