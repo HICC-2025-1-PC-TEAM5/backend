@@ -3,16 +3,18 @@ package hicc_project.RottenToday.service;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 import hicc_project.RottenToday.dto.ImageToIngredientResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+@Slf4j
 @Service
 public class VisionService {
     public ImageToIngredientResponse detectIngredient(byte[] imageBytes) throws IOException {
         List<String> labels = new ArrayList<>();
+
 
         // Detects labels in the specified local image.
         try (ImageAnnotatorClient vision = ImageAnnotatorClient.create()) {
