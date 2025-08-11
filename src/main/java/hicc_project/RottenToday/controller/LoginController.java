@@ -1,6 +1,9 @@
+/*
 package hicc_project.RottenToday.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hicc_project.RottenToday.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +33,18 @@ public class LoginController {
     private String googleClientSecret;
 
     private static final ObjectMapper OM = new ObjectMapper();
+    private final JwtService jwtService;
 
-    // Google 로그인 페이지로 redirect (refresh_token 목적: prompt=consent 추가)
+    */
+/** JSON → Map 변환 (제네릭 경고 제거용) *//*
+
+    private static Map<String, Object> toMap(String json) throws Exception {
+        return OM.readValue(json, new TypeReference<Map<String, Object>>() {});
+    }
+
+    */
+/** Google 로그인 페이지로 리다이렉트 *//*
+
     @GetMapping("/google")
     public ResponseEntity<Void> redirectToGoogle() {
         String redirectUri = "http://localhost:8080/api/v2/oauth2/google/callback";
@@ -42,7 +55,7 @@ public class LoginController {
                         + "&response_type=code"
                         + "&scope=" + URLEncoder.encode("email profile openid", StandardCharsets.UTF_8)
                         + "&access_type=offline"
-                        + "&prompt=consent"                  // 매번 동의 받아 refresh_token 받기
+                        + "&prompt=consent"
                         + "&include_granted_scopes=true";
 
         HttpHeaders headers = new HttpHeaders();
@@ -50,7 +63,9 @@ public class LoginController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
-    // 콜백: 토큰 교환 → 유저정보 조회 → 두 JSON 모두 반환
+    */
+/** 콜백: 토큰 교환 → 유저 정보 조회 → 우리 JWT 발급 → 모두 합쳐 응답 *//*
+
     @GetMapping("/google/callback")
     public ResponseEntity<String> handleCallback(
             @RequestParam(value = "code", required = false) String code,
@@ -58,7 +73,7 @@ public class LoginController {
             @RequestParam(value = "error_description", required = false) String errorDesc
     ) {
         if (error != null) {
-            return ResponseEntity.status(400)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body("{\"error\":\"" + error + "\",\"description\":\"" + errorDesc + "\"}");
         }
@@ -71,7 +86,7 @@ public class LoginController {
         String tokenUri = "https://oauth2.googleapis.com/token";
         String redirectUri = "http://localhost:8080/api/v2/oauth2/google/callback";
 
-        // 1) 토큰 교환
+        // 1) 구글 토큰 교환
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("code", code);
         form.add("client_id", googleClientId);
@@ -89,29 +104,43 @@ public class LoginController {
             ResponseEntity<String> tokenRes =
                     restTemplate.postForEntity(tokenUri, new HttpEntity<>(form, headers), String.class);
 
-            // 토큰 JSON 파싱 (access_token / id_token / refresh_token 등)
-            Map<String, Object> tokenJson = OM.readValue(tokenRes.getBody(), Map.class);
+            Map<String, Object> tokenJson = toMap(tokenRes.getBody());
             String accessToken = (String) tokenJson.get("access_token");
-
             if (accessToken == null || accessToken.isBlank()) {
                 return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"error\":\"no_access_token\"}");
             }
 
-            // 2) 유저 정보 조회 (권장: Authorization 헤더)
+            // 2) 구글 유저 정보 조회 (Authorization: Bearer)
             String userinfoUrl = "https://www.googleapis.com/userinfo/v2/me";
             HttpHeaders uh = new HttpHeaders();
             uh.setBearerAuth(accessToken);
             uh.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
-
             ResponseEntity<String> userInfoRes =
                     restTemplate.exchange(userinfoUrl, HttpMethod.GET, new HttpEntity<>(uh), String.class);
 
-            // 3) 요청받은 두 JSON 모두 합쳐서 반환
+            Map<String, Object> userInfo = toMap(userInfoRes.getBody());
+
+            // 3) 우리 JWT 발급 (subject는 구글 고유 id 사용 권장)
+            String subject = String.valueOf(userInfo.getOrDefault("id", "unknown"));
+            Map<String, Object> appClaims = Map.of(
+                    "provider", "google",
+                    "email", userInfo.get("email"),
+                    "name",  userInfo.get("name")
+            );
+            var pair = jwtService.issue(subject, appClaims);
+
+            // 4) 합쳐서 JSON 반환
             Map<String, Object> merged = new HashMap<>();
-            merged.put("tokenResponse", OM.readValue(tokenRes.getBody(), Map.class));   // 토큰 응답 JSON 그대로
-            merged.put("userInfo", OM.readValue(userInfoRes.getBody(), Map.class));     // 유저 정보 JSON 그대로
+            merged.put("tokenResponse", tokenJson);                     // 구글 토큰 응답
+            merged.put("userInfo", userInfo);                           // 구글 유저 정보
+            merged.put("appJwt", Map.of(                                 // 우리 서버 JWT
+                    "accessToken",  pair.accessToken(),
+                    "refreshToken", pair.refreshToken(),
+                    "tokenType",    "Bearer",
+                    "expiresIn",    pair.accessExpiresInSeconds()
+            ));
 
             String body = OM.writerWithDefaultPrettyPrinter().writeValueAsString(merged);
             return ResponseEntity.ok()
@@ -123,10 +152,11 @@ public class LoginController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(e.getResponseBodyAsString());
         } catch (Exception e) {
-            log.error("oauth2 error: {}", e.getMessage(), e);
+            log.error("oauth2 error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body("{\"error\":\"internal_error\"}");
         }
     }
 }
+*/
