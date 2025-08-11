@@ -32,23 +32,25 @@ public class UserService {
         this.ingredientRepository = ingredientRepository;
     }
 
-    public TasteRecipeListResponse getTaste(Long userId) {
-        List<Recipe> recipes = tasteRepository.findByMemberId(userId);
-        List<TasteRecipeResponse> tasteRecipeResponseList = new ArrayList<>();
-        for (Recipe recipe : recipes) {
-            TasteRecipeDto tasteRecipeDto = new TasteRecipeDto(recipe);
-            tasteRecipeResponseList.add(new TasteRecipeResponse(tasteRecipeDto));
+    public TasteRecipeResponse getTaste(Long userId) {
+        List<Taste> recipes = tasteRepository.findByMemberId(userId);
+        List<TasteRecipeDto> response = new ArrayList<>();
+        for (Taste recipe : recipes) {
+            response.add(new TasteRecipeDto(recipe.getRecipe()));
         }
-        return new TasteRecipeListResponse(tasteRecipeResponseList);
+        return new TasteRecipeResponse(response);
     }
 
-    public void updateTaste(Long userId, Long recipeId, Appetite type) {
+    public void updateTaste(Long userId, Long recipeId, String appetite) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         recipe.setUsed(true); //레시피 사용된거는 디비에서 안지워지게 설정하기 위함
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        Taste taste = new Taste(type, recipe, member);
+        if (!(appetite.equals("좋아요") || appetite.equals("싫어요"))){
+            throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요' 입력할 수 있습니다.");
+        }
+        Taste taste = new Taste(appetite, recipe, member);
         tasteRepository.save(taste);
     }
 

@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -104,7 +105,24 @@ public class OpenAiService {
             List<IngredientDto> ingredients =
                     mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
             log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
-            return ingredients;
+
+            List<IngredientDto> ingredients2 = new ArrayList<>();
+            for (IngredientDto ingredient : ingredients) {
+                if (ingredient.getCategory().equals("가공식품") || ingredient.getCategory().equals("음료류")) {
+                    IngredientDto dto = new IngredientDto();
+                    dto.setCategory(ingredient.getCategory());
+                    dto.setName(ingredient.getName());
+                    ingredients2.add(dto);
+                } else {
+                    IngredientDto dto = new IngredientDto();
+                    dto.setCategory(ingredient.getCategory());
+                    dto.setName(ingredient.getSubcategory());
+                    ingredients2.add(dto);
+                }
+            }
+
+
+            return ingredients2;
 
         } catch (WebClientRequestException e) {
             log.error("GPT API 요청 전송 실패", e);
@@ -201,7 +219,24 @@ public class OpenAiService {
             List<IngredientDto> ingredients =
                     mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
             log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
-            return ingredients;
+
+            List<IngredientDto> ingredients2 = new ArrayList<>();
+            for (IngredientDto ingredient : ingredients) {
+                if (ingredient.getCategory().equals("가공식품") || ingredient.getCategory().equals("음료류")) {
+                    IngredientDto dto = new IngredientDto();
+                    dto.setCategory(ingredient.getCategory());
+                    dto.setName(ingredient.getName());
+                    ingredients2.add(dto);
+                } else {
+                    IngredientDto dto = new IngredientDto();
+                    dto.setCategory(ingredient.getCategory());
+                    dto.setName(ingredient.getSubcategory());
+                    ingredients2.add(dto);
+                }
+            }
+
+
+            return ingredients2;
 
         } catch (WebClientRequestException e) {
             log.error("GPT API 요청 전송 실패", e);

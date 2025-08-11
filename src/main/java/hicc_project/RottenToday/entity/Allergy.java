@@ -20,7 +20,8 @@ public class Allergy {
     protected Allergy() {}
 
     public Allergy(Member member, Ingredient ingredient) {
-
+        this.member = member;
+        this.ingredient = ingredient;
     }
 
 }

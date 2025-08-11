@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface TasteRepository extends JpaRepository<Taste, Long> {
-    List<Recipe> findByMemberId(Long userId);
+    List<Taste> findByMemberId(Long userId);
 }

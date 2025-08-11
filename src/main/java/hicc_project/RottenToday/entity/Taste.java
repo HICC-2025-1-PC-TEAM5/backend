@@ -23,8 +23,12 @@ public class Taste {
 
     protected Taste() {}
 
-    public Taste(Appetite type, Recipe recipe, Member member){
-        this.type = type;
+    public Taste(String type, Recipe recipe, Member member){
+        if (type.equals("좋아요")) {
+            this.type = Appetite.LIKE;
+        } else {
+            this.type = Appetite.DISLIKE;
+        }
         this.member = member;
         this.recipe = recipe;
     }

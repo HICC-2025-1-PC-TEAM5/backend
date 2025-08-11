@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,17 +46,27 @@ public class IngredientService {
 
     public RefrigeratorIngredientResponse getRefidge(Long memberId) {
         List<RefrigeratorIngredient> findRefrigeIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
-        RefrigeratorIngredientResponse response = new RefrigeratorIngredientResponse(findRefrigeIngredients);
+        List<RefridgeDto> dtos = new ArrayList<>();
+        for (RefrigeratorIngredient refrigeIngredient : findRefrigeIngredients) {
+            RefridgeDto refridgeDto = new RefridgeDto(refrigeIngredient);
+            dtos.add(refridgeDto);
+        }
+        RefrigeratorIngredientResponse response = new RefrigeratorIngredientResponse(dtos);
         return response;
     }
 
 
     public void addRefridgeIngredient(Long memberId, RefrigeratorIngredientResponse request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 존재x"));
-        for (RefrigeratorIngredient refrigeratorIngredient : request.getRefrigeratorIngredient()) {
-            ingredientRepository.findByName(refrigeratorIngredient.getName())
+        for (RefridgeDto dto : request.getRefrigeratorIngredient()) {
+            RefrigeratorIngredient refrigeratorIngredient = new RefrigeratorIngredient(dto);
+            ingredientRepository.findByName(dto.getName())
                     .ifPresent(ingredient -> {refrigeratorIngredient.setIngredient(ingredient);});
             refrigeratorIngredient.setMember(member);
+            int plusDays = measureExpireDate(refrigeratorIngredient.getCategory(), refrigeratorIngredient.getType());
+            LocalDateTime expireDate = refrigeratorIngredient.getInput_date().plusDays(plusDays);
+            refrigeratorIngredient.setExpire_date(expireDate);
+
             refrigeratorIngredientRepository.save(refrigeratorIngredient);
         }
     }

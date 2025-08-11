@@ -3,7 +3,6 @@ package hicc_project.RottenToday.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.dto.*;
-import hicc_project.RottenToday.entity.Appetite;
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.entity.Recipe;
 import hicc_project.RottenToday.entity.Taste;
@@ -42,12 +41,15 @@ public class RecipeService {
         return response;
     }
 
-    public void addfavorite(Long userId, Long recipeId, Appetite type) {
+    public void addfavorite(Long userId, Long recipeId, String appetite) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피 존재 x"));
-        Taste taste = new Taste(type, recipe, member);
+        if (!(appetite.equals("좋아요") || appetite.equals("싫어요"))){
+            throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요' 입력할 수 있습니다.");
+        }
+        Taste taste = new Taste(appetite, recipe, member);
         tasteRepository.save(taste);
 
     }

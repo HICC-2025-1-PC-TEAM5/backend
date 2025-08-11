@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,10 +17,12 @@ public class History {
 
     @ManyToOne
     @JoinColumn(name="member_id")
+    @JsonIgnore
     private Member member;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")
+    @JsonIgnore
     private Recipe recipe;
 
     protected History() {}
