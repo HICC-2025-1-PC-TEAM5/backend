@@ -6,8 +6,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum Appetite {
-    DISLIKE(0, "싫어하는 음식"),
-    LIKE(1, "좋아하는 음식");
+    DISLIKE(0, "싫어요"),
+    LIKE(1, "좋아요");
 
     private int id;
     private String status;

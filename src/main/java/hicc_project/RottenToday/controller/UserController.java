@@ -14,9 +14,9 @@ public class UserController {
 
 
     @GetMapping("/api/users/{userId}/preference")
-    public ResponseEntity<TasteRecipeListResponse> getUserPreference(@PathVariable Long userId) {
-        TasteRecipeListResponse tasteRecipeListResponse = userService.getTaste(userId);
-        return ResponseEntity.ok(tasteRecipeListResponse);
+    public ResponseEntity<TasteRecipeResponse> getUserPreference(@PathVariable Long userId) {
+        TasteRecipeResponse tasteRecipeResponse = userService.getTaste(userId);
+        return ResponseEntity.ok(tasteRecipeResponse);
     }
 
     @PostMapping("/api/users/{userId}/preference")

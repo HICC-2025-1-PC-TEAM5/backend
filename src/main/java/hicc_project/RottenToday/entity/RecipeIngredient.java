@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,9 +16,11 @@ public class RecipeIngredient {
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")
+    @JsonIgnore
     private Recipe recipe;
 
     @ManyToOne
     @JoinColumn(name = "ingredient_id")
+    @JsonIgnore
     private Ingredient ingredient;
 }

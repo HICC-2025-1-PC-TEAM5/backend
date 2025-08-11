@@ -9,9 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 public class RefrigeratorIngredientResponse {
-    List<RefrigeratorIngredient> refrigeratorIngredient;
+    List<RefridgeDto> refrigeratorIngredient;
 
-    public RefrigeratorIngredientResponse(List<RefrigeratorIngredient> refrigeratorIngredient) {
+    public RefrigeratorIngredientResponse(List<RefridgeDto> refrigeratorIngredient) {
         this.refrigeratorIngredient = refrigeratorIngredient;
     }
 
