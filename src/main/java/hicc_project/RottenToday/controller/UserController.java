@@ -1,17 +1,43 @@
 package hicc_project.RottenToday.controller;
 
 import hicc_project.RottenToday.dto.*;
+import hicc_project.RottenToday.dto.RecipeRequestDto;
+import hicc_project.RottenToday.dto.TasteRecipeListResponse;
+import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class UserController {
     @Autowired
     private UserService userService;
 
+
+
+    @GetMapping("/api/users/me")
+    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal Member member) {
+        if (member == null) return ResponseEntity.status(401).body(Map.of("error","Unauthorized"));
+        var body = Map.of(
+                "id", member.getId(),
+                "email", member.getEmail(),
+                "name", member.getName(),
+                "picture", member.getPicture()
+        );
+        return ResponseEntity.ok(Map.of("data", body));
+    }
+
+    @DeleteMapping("/api/users/me")
+    public ResponseEntity<String> deleteMyAccount(@AuthenticationPrincipal Member member) {
+        userService.deleteMember(member.getEmail()); // 또는 member.getId() 방식도 가능
+        return ResponseEntity.ok("회원 탈퇴 완료");
+    }
 
     @GetMapping("/api/users/{userId}/preference")
     public ResponseEntity<TasteRecipeResponse> getUserPreference(@PathVariable Long userId) {

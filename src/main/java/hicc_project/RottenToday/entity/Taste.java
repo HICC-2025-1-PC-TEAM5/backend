@@ -33,5 +33,4 @@ public class Taste {
         this.member = member;
         this.recipe = recipe;
     }
-
 }

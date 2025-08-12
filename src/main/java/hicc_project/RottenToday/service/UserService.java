@@ -3,6 +3,16 @@ package hicc_project.RottenToday.service;
 import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.*;
+import hicc_project.RottenToday.dto.TasteRecipeDto;
+import hicc_project.RottenToday.dto.TasteRecipeListResponse;
+import hicc_project.RottenToday.dto.TasteRecipeResponse;
+import hicc_project.RottenToday.entity.Appetite;
+import hicc_project.RottenToday.entity.Member;
+import hicc_project.RottenToday.entity.Recipe;
+import hicc_project.RottenToday.entity.Taste;
+import hicc_project.RottenToday.repository.MemberRepository;
+import hicc_project.RottenToday.repository.RecipeRepository;
+import hicc_project.RottenToday.repository.TasteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -127,6 +137,14 @@ public class UserService {
         } else {
             throw new EntityNotFoundException("해당 알러지 정보가 존재하지 않습니다.");
         }
+    }
 
+    // 회원 탈퇴 기능 추가
+    public void deleteMember(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        memberRepository.delete(member);
     }
 }
+
+
