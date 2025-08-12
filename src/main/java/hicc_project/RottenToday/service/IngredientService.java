@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -55,16 +56,21 @@ public class IngredientService {
         return response;
     }
 
-
+    @Transactional
     public void addRefridgeIngredient(Long memberId, RefrigeratorIngredientResponse request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 존재x"));
         for (RefridgeDto dto : request.getRefrigeratorIngredient()) {
             RefrigeratorIngredient refrigeratorIngredient = new RefrigeratorIngredient(dto);
-            ingredientRepository.findByName(dto.getName())
-                    .ifPresent(ingredient -> {refrigeratorIngredient.setIngredient(ingredient);});
+            if (ingredientRepository.findByName(dto.getName()).isPresent()) {
+                Ingredient ingredient = ingredientRepository.findByName(dto.getName()).get();
+                refrigeratorIngredient.setIngredient(ingredient);
+                refrigeratorIngredient.setCategory(ingredient.getCategory());
+            }
             refrigeratorIngredient.setMember(member);
             int plusDays = measureExpireDate(refrigeratorIngredient.getCategory(), refrigeratorIngredient.getType());
             LocalDateTime expireDate = refrigeratorIngredient.getInput_date().plusDays(plusDays);
+
+            System.out.println(expireDate);
             refrigeratorIngredient.setExpire_date(expireDate);
 
             refrigeratorIngredientRepository.save(refrigeratorIngredient);
@@ -74,7 +80,7 @@ public class IngredientService {
     public void updateRefridgeIngredient(Long memberId, RefridgeIngredientRequest request) {
         List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
         for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
-            if (refrigeratorIngredient.getId().equals(request.getId())) {
+            if (refrigeratorIngredient.getId().equals(request.getRefrigeratorIngredientId())) {
                 if (request.getQuantity() == 0) {
                     refrigeratorIngredientRepository.delete(refrigeratorIngredient);
                 } else {
@@ -105,7 +111,9 @@ public class IngredientService {
                 else if (condition == StorageCondition.REFRIGERATED) {expireDate = 10; break;}
                 else if (condition == StorageCondition.FROZEN) {expireDate = 60; break;}
                 break;
-            case GRAIN: if (condition == StorageCondition.NORMAL) {expireDate = 270; break;}
+            case GRAIN: if (condition == StorageCondition.NORMAL) {expireDate = 60; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 120; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 270; break;}
                 break;
             case MEAT: if (condition == StorageCondition.NORMAL) {break;}
                 else if (condition == StorageCondition.REFRIGERATED) {expireDate = 3; break;}
@@ -140,7 +148,10 @@ public class IngredientService {
                 else if (condition == StorageCondition.REFRIGERATED) {expireDate = 4; break;}
                 else if (condition == StorageCondition.FROZEN) {break;}
                 break;
-            case ETC: break;
+            case ETC: if (condition == StorageCondition.NORMAL) {expireDate = 5; break;}
+            else if (condition == StorageCondition.REFRIGERATED) {expireDate = 10; break;}
+            else if (condition == StorageCondition.FROZEN) {expireDate = 60; break;}
+                break;
             default: break;
 
 

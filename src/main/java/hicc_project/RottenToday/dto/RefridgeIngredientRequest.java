@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RefridgeIngredientRequest {
-    Long id;
+    Long refrigeratorIngredientId;
     int quantity;
 }

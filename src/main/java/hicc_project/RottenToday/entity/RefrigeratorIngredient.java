@@ -47,7 +47,10 @@ public class RefrigeratorIngredient {
         this.input_date = refridgeDto.getInput_date();
         this.expire_date = refridgeDto.getExpire_date();
 
-        if (refridgeDto.getCategory().equals("채소류")) {
+
+        if (refridgeDto.getCategory() == null) {
+            this.category = Category.ETC;
+        } else if (refridgeDto.getCategory().equals("채소류")) {
             this.category = Category.VEGETABLE;
         } else if (refridgeDto.getCategory().equals("과일류")) {
             this.category = Category.FRUIT;

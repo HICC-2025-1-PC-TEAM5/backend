@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FavoriteRequestDto {
-    private Long recipeId;
+    private Long historyId;
     private boolean type;
 }

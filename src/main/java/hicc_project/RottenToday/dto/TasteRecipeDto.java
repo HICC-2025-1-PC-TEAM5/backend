@@ -14,17 +14,20 @@ public class TasteRecipeDto {
     private Long id;
     private String name;
     private String image;
+    private String portion = "1인분";
     private List<String> ingredients;
-    private Long kcal;
-    private Long protein;
-    private Long sodium;
-    private Long carbohydrate;
-    private Long fat;
+    private String type;
+    private Double kcal;
+    private Double protein;
+    private Double sodium;
+    private Double carbohydrate;
+    private Double fat;
 
     public TasteRecipeDto(Recipe recipe) {
         this.id = recipe.getId();
         this.name = recipe.getName();
         this.image = recipe.getImage();
+        this.type = recipe.getType();
         this.ingredients =recipe.getRecipeIngredients().stream()
                 .map(recipeIngredient -> recipeIngredient.getIngredient().getName())
                 .collect(Collectors.toList());
