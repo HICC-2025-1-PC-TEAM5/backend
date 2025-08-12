@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import hicc_project.RottenToday.entity.Category;
 import hicc_project.RottenToday.entity.RefrigeratorIngredient;
 import hicc_project.RottenToday.entity.StorageCondition;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RefridgeDto {
     private Long id;
 
