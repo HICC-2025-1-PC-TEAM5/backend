@@ -60,32 +60,44 @@ public class UserService {
 
     public HistoryListResponse getHistory(Long userId) {
         List<History> histories = historyRepository.findByMemberId(userId);
-        HistoryListResponse historyListResponse = new HistoryListResponse(histories);
+        List<HistoryDto> historyDtoList = new ArrayList<>();
+        for (History history : histories) {
+            HistoryDto historyDto = new HistoryDto(history);
+            historyDtoList.add(historyDto);
+        }
+        HistoryListResponse historyListResponse = new HistoryListResponse(historyDtoList);
         return historyListResponse;
     }
 
     @Transactional
-    public void updateHistory(Long userId, Long recipeId) {
+    public HistoryDto updateHistory(Long userId, Long recipeId) {
         LocalDateTime time = LocalDateTime.now();
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         recipe.setUsed(true);   //레시피 사용된거는 디비에서 안지워지게 설정하기 위함
         History history = new History(member, time, recipe);
-        historyRepository.save(history);
+        History save = historyRepository.save(history);
+        HistoryDto historyDto = new HistoryDto(save);
+        return historyDto;
     }
 
     public HistoryListResponse getFavorites(Long userId) {
         List<History> favorites = historyRepository.findByMemberId(userId).stream()
                 .filter(f ->f.isFavorite())
                 .collect(Collectors.toList());
-        HistoryListResponse historyListResponse = new HistoryListResponse(favorites);
+        List<HistoryDto> historyDtoList = new ArrayList<>();
+        for (History history : favorites) {
+            HistoryDto historyDto = new HistoryDto(history);
+            historyDtoList.add(historyDto);
+        }
+        HistoryListResponse historyListResponse = new HistoryListResponse(historyDtoList);
         return historyListResponse;
     }
 
 
     public void updateFavorites(Long userId, FavoriteRequestDto requestDto) {
-        History history = historyRepository.findById(requestDto.getRecipeId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
+        History history = historyRepository.findById(requestDto.getHistoryId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         history.setFavorite(requestDto.isType());
         historyRepository.save(history);
 

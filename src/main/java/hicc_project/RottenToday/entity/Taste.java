@@ -10,6 +10,7 @@ public class Taste {
     private Long id;
 
     private Appetite type;
+    private String portion = "1인분";
 
     @ManyToOne
     @JoinColumn(name = "member_id")

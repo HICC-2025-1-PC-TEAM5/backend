@@ -57,9 +57,9 @@ public class UserController {
     }
 
     @PostMapping("/api/users/{userId}/history")
-    public ResponseEntity<String> updateHistory(@PathVariable Long userId, @RequestBody RecipeRequestDto requestDto) {
-        userService.updateHistory(userId, requestDto.getRecipeId());
-        return ResponseEntity.ok("ok");
+    public ResponseEntity<HistoryDto> updateHistory(@PathVariable Long userId, @RequestBody RecipeRequestDto requestDto) {
+        HistoryDto historyDto = userService.updateHistory(userId, requestDto.getRecipeId());
+        return ResponseEntity.ok(historyDto);
     }
 
     @GetMapping("/api/users/{userId}/history/favorites")

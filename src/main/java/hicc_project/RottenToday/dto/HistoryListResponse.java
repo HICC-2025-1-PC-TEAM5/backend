@@ -5,14 +5,14 @@ import hicc_project.RottenToday.entity.History;
 import java.util.List;
 
 public class HistoryListResponse {
-    List<History> recipe;
+    List<HistoryDto> history;
 
-    public HistoryListResponse(List<History> recipe) {
-        this.recipe = recipe;
+    public HistoryListResponse(List<HistoryDto> recipe) {
+        this.history = recipe;
     }
 
-    public List<History> getRecipe() {
-        return recipe;
+    public List<HistoryDto> getRecipe() {
+        return history;
     }
 
 
