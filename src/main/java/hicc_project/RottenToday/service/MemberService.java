@@ -1,8 +1,8 @@
-// src/main/java/hicc_project/RottenToday/service/MemberService.java
 package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;   // ★ 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,5 +41,12 @@ public class MemberService {
     @Transactional
     public void bumpTokenVersion(long memberId) {
         repo.findById(memberId).ifPresent(Member::bumpTokenVersion);
+    }
+
+    // ★ 추가: AuthenticationPrincipal로 쓸 Member 로드
+    @Transactional(readOnly = true)
+    public Member getById(long memberId) {
+        return repo.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("member not found: " + memberId));
     }
 }

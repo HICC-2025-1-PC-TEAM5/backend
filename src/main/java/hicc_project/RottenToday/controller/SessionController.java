@@ -1,4 +1,3 @@
-// src/main/java/hicc_project/RottenToday/controller/SessionController.java
 package hicc_project.RottenToday.controller;
 
 import hicc_project.RottenToday.jwt.JwtProperties;

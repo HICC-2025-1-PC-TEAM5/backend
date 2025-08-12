@@ -21,6 +21,7 @@ import java.util.Map;
 public class JwtService {
 
     private final JwtProperties props;
+    private final MemberService memberService; // ★ tver 조회를 위해 주입
 
     public record TokenPair(
             String accessToken,
@@ -39,7 +40,7 @@ public class JwtService {
 
         String access = Jwts.builder()
                 .setSubject(subject)
-                .addClaims(claims)
+                .addClaims(claims) // (AuthController에서 tver 포함해 전달)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plusSeconds(props.getAccessTtlSeconds())))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -55,7 +56,7 @@ public class JwtService {
         return new TokenPair(access, refresh, props.getAccessTtlSeconds(), props.getRefreshTtlSeconds());
     }
 
-    /** refresh 토큰 검증 후 Access 재발급 (+ 기본 로테이션으로 새 refresh도 함께 발급) */
+    /** refresh 토큰 검증 후 Access 재발급 (+ 로테이션). Access에 tver 포함 */
     public TokenPair refresh(String refreshToken) {
         SecretKey key = key();
 
@@ -65,16 +66,19 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(refreshToken);
 
-        Claims rc = jws.getBody();
-        String subject = rc.getSubject();
+        String subject = jws.getBody().getSubject(); // subject = memberId (문자열)
+        long memberId = Long.parseLong(subject);
 
-        // (선택) 서버측 무효화/버전 확인 로직이 있다면 여기서 검사
+        // ★ 현재 tokenVersion 조회 (로그아웃 등으로 변경되었을 수 있음)
+        long tver = memberService.getTokenVersion(memberId);
 
-        // 2) Access 재발급 + Refresh 로테이션(보안 권장)
+        // 2) Access 재발급 + Refresh 로테이션
         Instant now = Instant.now();
 
         String newAccess = Jwts.builder()
                 .setSubject(subject)
+                .claim("tver", tver)         // ★ 필수: 필터 통과용
+                .claim("mid", memberId)      // (선택) 편의상 포함
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plusSeconds(props.getAccessTtlSeconds())))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -87,6 +91,7 @@ public class JwtService {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
-        return new TokenPair(newAccess, newRefresh, props.getAccessTtlSeconds(), props.getRefreshTtlSeconds());
+        return new TokenPair(newAccess, newRefresh,
+                props.getAccessTtlSeconds(), props.getRefreshTtlSeconds());
     }
 }

@@ -2,7 +2,6 @@
 package hicc_project.RottenToday.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hicc_project.RottenToday.dto.auth.AuthResponseDto;
 import hicc_project.RottenToday.service.JwtService;
 import hicc_project.RottenToday.service.MemberService;
 import jakarta.servlet.http.HttpSession;
@@ -30,6 +29,10 @@ public class AuthController {
 
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
+
+    // 프론트 메인 진입 URL (환경에서 오버라이드 가능)
+    @Value("${app.frontend.main-url:http://localhost:5173}")
+    private String frontendMainUrl;
 
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
@@ -59,7 +62,7 @@ public class AuthController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
-    @GetMapping(value = "/google/callback", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/google/callback")
     public ResponseEntity<?> handleGoogleCallback(
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "state", required = false) String state,
@@ -137,37 +140,14 @@ public class AuthController {
             );
             var pair = jwtService.issue(subject, claims);
 
-            // 5) 응답 DTO
-            AuthResponseDto body = new AuthResponseDto(
-                    new AuthResponseDto.UserDto(
-                            String.valueOf(member.getId()), // 내부 memberId로 내려도 편함
-                            email,
-                            name,
-                            picture
-                    ),
-                    new AuthResponseDto.AppJwtDto(
-                            pair.accessToken(),
-                            pair.accessExpiresInSeconds(),
-                            "Bearer"
-                    ),
-                    new AuthResponseDto.GoogleTokensDto(
-                            (String) tokenJson.get("access_token"),
-                            ((Number) tokenJson.getOrDefault("expires_in", 0)).longValue(),
-                            (String) tokenJson.getOrDefault("token_type", "Bearer"),
-                            null, // refreshToken 비노출
-                            (String) tokenJson.get("scope"),
-                            (String) tokenJson.get("id_token")
-                    )
-            );
-
-            // 6) 쿠키 세팅: refresh_token 유지, refreshToken(legacy) 제거
+            // 5) 쿠키 세팅: refresh_token 유지, refreshToken(legacy) 제거
             HttpHeaders out = new HttpHeaders();
             out.setCacheControl(CacheControl.noStore());
             out.add("Pragma", "no-cache");
 
             ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", pair.refreshToken())
                     .httpOnly(true)
-                    .secure(false)      // HTTPS면 true
+                    .secure(false)      // 운영 HTTPS면 true + sameSite(None)
                     .sameSite("Lax")    // 크로스도메인이면 "None" + secure(true)
                     .path("/")
                     .maxAge(pair.refreshExpiresInSeconds())
@@ -178,7 +158,10 @@ public class AuthController {
                     .httpOnly(true).secure(false).sameSite("Lax").path("/").maxAge(0).build();
             out.add(HttpHeaders.SET_COOKIE, killLegacy.toString());
 
-            return new ResponseEntity<>(body, out, HttpStatus.OK);
+            // 6) 프론트 메인으로 Redirect (Access는 URL에 싣지 않음)
+            String sep = frontendMainUrl.contains("?") ? "&" : "?";
+            out.setLocation(URI.create(frontendMainUrl + sep + "from=oauth")); // ★ 표식 추가
+            return new ResponseEntity<>(out, HttpStatus.FOUND);
 
         } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode())
@@ -190,5 +173,4 @@ public class AuthController {
         }
     }
 }
-/*테스트용 나중에 삭제*/
 

@@ -1,4 +1,3 @@
-// src/main/java/hicc_project/RottenToday/config/SecurityConfig.java
 package hicc_project.RottenToday.config;
 
 import hicc_project.RottenToday.security.JwtAuthenticationFilter;
@@ -35,7 +34,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v2/oauth2/**").permitAll()
                         .requestMatchers("/api/auth/refresh", "/api/auth/logout").permitAll()
-                        // 개발 중엔 전부 허용, 운영 전환 시 authenticated()로 변경
+                        .requestMatchers("/api/users/me").authenticated()   // 유저 정보는 인증 필요
+                        // 개발 중엔 허용, 운영 전환 시 authenticated() 권장
                         .anyRequest().permitAll()
                 )
                 // JWT 검증 필터를 UsernamePasswordAuthenticationFilter 앞에 배치
@@ -47,7 +47,6 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // 프론트 도메인들: 필요에 맞게 조정
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:5173",
@@ -56,9 +55,8 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // HttpOnly 쿠키 전송 허용
-        // 노출이 필요한 커스텀 헤더가 있으면 아래 주석 해제
+        // 필요 시 노출 헤더
         // config.setExposedHeaders(List.of("Authorization"));
-
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

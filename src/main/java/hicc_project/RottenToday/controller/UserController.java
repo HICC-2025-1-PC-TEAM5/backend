@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -17,8 +19,15 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<Member> getMyInfo(@AuthenticationPrincipal Member member) {
-        return ResponseEntity.ok(member);
+    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal Member member) {
+        if (member == null) return ResponseEntity.status(401).body(Map.of("error","Unauthorized"));
+        var body = Map.of(
+                "id", member.getId(),
+                "email", member.getEmail(),
+                "name", member.getName(),
+                "picture", member.getPicture()
+        );
+        return ResponseEntity.ok(Map.of("data", body));
     }
 
     @DeleteMapping("/me")
