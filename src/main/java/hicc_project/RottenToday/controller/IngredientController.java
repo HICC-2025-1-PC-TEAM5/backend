@@ -1,9 +1,6 @@
 package hicc_project.RottenToday.controller;
 
-import hicc_project.RottenToday.dto.IngredientDto;
-import hicc_project.RottenToday.dto.IngredientListResponse;
-import hicc_project.RottenToday.dto.RefridgeIngredientRequest;
-import hicc_project.RottenToday.dto.RefrigeratorIngredientResponse;
+import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.RefrigeratorIngredient;
 import hicc_project.RottenToday.service.IngredientService;
 import hicc_project.RottenToday.service.OpenAiService;
@@ -58,6 +55,12 @@ public class IngredientController {
         ingredientService.deleteIngredient(userId, refrigeratorId);
         return ResponseEntity.ok("ok");
 
+    }
+
+    @GetMapping("/api/users/{userId}/ingredientlist/{ingredientId}")
+    public ResponseEntity<IngredientResponse> getIngredientDetail(@PathVariable Long userId, @PathVariable Long ingredientId) {
+        IngredientResponse ingredientDetail = ingredientService.getIngredientDetail(userId, ingredientId);
+        return ResponseEntity.ok(ingredientDetail);
     }
 
     @GetMapping("/api/users/{userId}/ingredientlist")

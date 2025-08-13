@@ -336,7 +336,7 @@ public class IngredientService {
                     IngredientResponse ingredientResponse = new IngredientResponse(ingredient);
                     if (allergy.getIngredient().equals(ingredient)) {
                         ingredientResponse.setAllergy(true);
-
+                        break;
                     } else {
                         ingredientResponse.setAllergy(false);
                     }
@@ -347,5 +347,22 @@ public class IngredientService {
         } else {
             throw new EntityNotFoundException("해당 유저는 존재하지 않습니다.");
         }
+    }
+
+    public IngredientResponse getIngredientDetail(Long memberId, Long ingredientId) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId).orElseThrow(() -> new EntityNotFoundException("해당하는 재료 정보 없음"));
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당되는 유저 정보 없음"));
+        List<Allergy> allergies = member.getAllergies();
+        IngredientResponse ingredientResponse = new IngredientResponse(ingredient);
+        for (Allergy allergy : allergies) { //재료 정보에 알러지 표시
+            if (allergy.getIngredient().equals(ingredient)) {
+                ingredientResponse.setAllergy(true);
+                break;
+            } else {
+                ingredientResponse.setAllergy(false);
+            }
+        }
+        return ingredientResponse;
+
     }
 }
