@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface TasteRepository extends JpaRepository<Taste, Long> {
     List<Taste> findByMemberId(Long userId);
     Optional<Taste> findByRecipeId(Long recipeId);
+    Optional<Taste> findByRecipeIdAndMemberId(Long recipeId, Long memberId);
 }

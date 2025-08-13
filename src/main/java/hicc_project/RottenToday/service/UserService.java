@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,11 +71,12 @@ public class UserService {
         tasteRepository.save(taste);
     }
 
-    public void deleteTaste(Long tasteId) {
-        if (tasteRepository.existsById(tasteId)) {
-            tasteRepository.deleteById(tasteId);
+    public void deleteTaste(Long recipeId, Long memberId) {
+        Optional<Taste> byRecipeIdAndMemberId = tasteRepository.findByRecipeIdAndMemberId(recipeId, memberId);
+        if (byRecipeIdAndMemberId.isPresent()) {
+            tasteRepository.delete(byRecipeIdAndMemberId.get());
         } else {
-            throw new EntityNotFoundException("해당 레시피가 존재하지 않습니다.");
+            throw new EntityNotFoundException("삭제하려는 레시피가 즐겨찾기 목록에 존재하지 않습니다.");
         }
     }
 

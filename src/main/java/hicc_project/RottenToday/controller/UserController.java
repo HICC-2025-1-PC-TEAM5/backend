@@ -53,7 +53,7 @@ public class UserController {
 
     @DeleteMapping("/api/users/{userId}/preference")
     public ResponseEntity<String> deleteUserPreference(@PathVariable Long userId, @RequestBody RecipeRequestDto requestDto) {
-        userService.deleteTaste(requestDto.getRecipeId());
+        userService.deleteTaste(requestDto.getRecipeId(), userId);
         return ResponseEntity.ok("ok");
 
     }

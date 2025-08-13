@@ -1,11 +1,13 @@
 package hicc_project.RottenToday.controller;
 
 import hicc_project.RottenToday.dto.IngredientDto;
+import hicc_project.RottenToday.dto.IngredientListResponse;
 import hicc_project.RottenToday.dto.RefridgeIngredientRequest;
 import hicc_project.RottenToday.dto.RefrigeratorIngredientResponse;
 import hicc_project.RottenToday.entity.RefrigeratorIngredient;
 import hicc_project.RottenToday.service.IngredientService;
 import hicc_project.RottenToday.service.OpenAiService;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,6 +58,12 @@ public class IngredientController {
         ingredientService.deleteIngredient(userId, refrigeratorId);
         return ResponseEntity.ok("ok");
 
+    }
+
+    @GetMapping("/api/users/{userId}/ingredientlist")
+    public ResponseEntity<IngredientListResponse> getIngredientList(@PathVariable Long userId) {
+        IngredientListResponse ingredientList = ingredientService.getIngredientList(userId);
+        return ResponseEntity.ok(ingredientList);
     }
 
 

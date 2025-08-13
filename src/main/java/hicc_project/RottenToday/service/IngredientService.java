@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -323,6 +324,28 @@ public class IngredientService {
     }
 
 
+    public IngredientListResponse getIngredientList(Long memberId) {
+        Optional<Member> byId = memberRepository.findById(memberId);
+        if (byId.isPresent()) {
+            Member member = byId.get();
+            List<Allergy> allergies = member.getAllergies();
+            List<Ingredient> ingredientList = ingredientRepository.findAll();
+            List<IngredientResponse> ingredientResponseList = new ArrayList<>();
+            for (Ingredient ingredient : ingredientList) {
+                for (Allergy allergy : allergies) { //재료 정보에 알러지 표시
+                    IngredientResponse ingredientResponse = new IngredientResponse(ingredient);
+                    if (allergy.getIngredient().equals(ingredient)) {
+                        ingredientResponse.setAllergy(true);
 
-
+                    } else {
+                        ingredientResponse.setAllergy(false);
+                    }
+                    ingredientResponseList.add(ingredientResponse);
+                }
+            }
+            return new IngredientListResponse(ingredientResponseList);
+        } else {
+            throw new EntityNotFoundException("해당 유저는 존재하지 않습니다.");
+        }
+    }
 }
