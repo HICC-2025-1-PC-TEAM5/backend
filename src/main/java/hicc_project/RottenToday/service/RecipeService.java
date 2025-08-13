@@ -73,6 +73,10 @@ public class RecipeService {
                     .collect(Collectors.toList());
             for (RecipeResponseDto dto : recipeList) {
                 Recipe recipe = new Recipe(dto);
+                List<RecipeStep> steps = dto.getSteps();
+                for (RecipeStep step : steps) {
+                    step.setRecipe(recipe);
+                }
                 Recipe save = recipeRepository.save(recipe);
                 dto.setId(save.getId());
             }

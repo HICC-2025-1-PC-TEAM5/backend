@@ -1,10 +1,13 @@
 package hicc_project.RottenToday.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 public class RecipeStep {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,6 +19,7 @@ public class RecipeStep {
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")
+    @JsonIgnore
     private Recipe recipe;
 
     protected RecipeStep() {}
@@ -25,4 +29,6 @@ public class RecipeStep {
         this.description = description;
         this.image = image;
     }
+
+
 }
