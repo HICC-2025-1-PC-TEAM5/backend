@@ -13,6 +13,8 @@ public class Ingredient {
     private String name;
     private Category category;
 
+    private String imageUrl;
+
 
 
 }

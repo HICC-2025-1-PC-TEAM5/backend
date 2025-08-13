@@ -7,6 +7,7 @@ import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.entity.Recipe;
 import hicc_project.RottenToday.entity.RecipeStep;
 import hicc_project.RottenToday.entity.Taste;
+import hicc_project.RottenToday.exception.DuplicateEntityException;
 import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.RecipeStepRepository;
@@ -53,6 +54,9 @@ public class RecipeService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피 존재 x"));
         if (!(appetite.equals("좋아요") || appetite.equals("싫어요"))){
             throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요' 입력할 수 있습니다.");
+        }
+        if (tasteRepository.findByRecipeId(recipeId).isPresent()){
+            throw new DuplicateEntityException("이미 해당 레시피를 저장하였습니다.");
         }
         Taste taste = new Taste(appetite, recipe, member);
         tasteRepository.save(taste);

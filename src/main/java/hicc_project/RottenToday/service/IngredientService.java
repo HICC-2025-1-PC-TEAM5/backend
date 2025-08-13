@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
+import hicc_project.RottenToday.exception.NoInputException;
 import hicc_project.RottenToday.repository.IngredientRepository;
 import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RefrigeratorIngredientRepository;
@@ -32,14 +33,12 @@ public class IngredientService {
     RefrigeratorIngredientRepository refrigeratorIngredientRepository;
     IngredientRepository ingredientRepository;
     MemberRepository memberRepository;
-    OpenAiService openAiService;
 
     @Autowired
-    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository, OpenAiService openApiService) {
+    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository) {
         this.refrigeratorIngredientRepository = refrigeratorIngredientRepository;
         this.ingredientRepository = ingredientRepository;
         this.memberRepository = memberRepository;
-        this.openAiService = openAiService;
     }
 
 
@@ -70,7 +69,6 @@ public class IngredientService {
             int plusDays = measureExpireDate(refrigeratorIngredient.getCategory(), refrigeratorIngredient.getType());
             LocalDateTime expireDate = refrigeratorIngredient.getInput_date().plusDays(plusDays);
 
-            System.out.println(expireDate);
             refrigeratorIngredient.setExpire_date(expireDate);
 
             refrigeratorIngredientRepository.save(refrigeratorIngredient);
@@ -163,6 +161,9 @@ public class IngredientService {
 
     public List<List<String>> detectIngredient(MultipartFile file) throws IOException, InterruptedException {
 
+        if (file.isEmpty()){
+            throw new NoInputException("입력값이 들어오지 않았습니다.");
+        }
 
         String contentType = file.getContentType();
 

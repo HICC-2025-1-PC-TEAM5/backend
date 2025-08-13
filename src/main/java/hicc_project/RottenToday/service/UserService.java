@@ -2,6 +2,7 @@ package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
+import hicc_project.RottenToday.exception.DuplicateEntityException;
 import hicc_project.RottenToday.repository.*;
 import hicc_project.RottenToday.dto.TasteRecipeDto;
 import hicc_project.RottenToday.dto.TasteRecipeListResponse;
@@ -60,12 +61,21 @@ public class UserService {
         if (!(appetite.equals("좋아요") || appetite.equals("싫어요"))){
             throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요' 입력할 수 있습니다.");
         }
+
+        if (tasteRepository.findByRecipeId(recipeId).isPresent()){
+            throw new DuplicateEntityException("이미 해당 레시피를 저장하였습니다.");
+        }
+
         Taste taste = new Taste(appetite, recipe, member);
         tasteRepository.save(taste);
     }
 
     public void deleteTaste(Long tasteId) {
-        tasteRepository.deleteById(tasteId);
+        if (tasteRepository.existsById(tasteId)) {
+            tasteRepository.deleteById(tasteId);
+        } else {
+            throw new EntityNotFoundException("해당 레시피가 존재하지 않습니다.");
+        }
     }
 
     public HistoryListResponse getHistory(Long userId) {
@@ -109,6 +119,9 @@ public class UserService {
     public void updateFavorites(Long userId, FavoriteRequestDto requestDto) {
         History history = historyRepository.findById(requestDto.getHistoryId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         history.setFavorite(requestDto.isType());
+        if (historyRepository.existsById(history.getId())) {
+            throw new DuplicateEntityException("이미 즐겨찾기한 요리 기록입니다.");
+        }
         historyRepository.save(history);
 
     }
@@ -128,6 +141,9 @@ public class UserService {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다"));
         Ingredient ingredient = ingredientRepository.findById(request.getIngredientId()).orElseThrow(() -> new EntityNotFoundException("해당 재료를 찾을 수 없습니다"));
         Allergy allergy = new Allergy(member, ingredient);
+        if (allergyRepository.findByIngredientId(request.getIngredientId()).isPresent()) {
+            throw new DuplicateEntityException("이미 알러지 등록한 항목입니다.");
+        }
         allergyRepository.save(allergy);
     }
 
