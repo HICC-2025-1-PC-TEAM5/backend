@@ -23,6 +23,7 @@ public class SessionController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@CookieValue(name="refresh_token", required=false) String refresh) {
+        System.out.println(2);
         if (refresh == null || refresh.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error","no_refresh_cookie"));
         }

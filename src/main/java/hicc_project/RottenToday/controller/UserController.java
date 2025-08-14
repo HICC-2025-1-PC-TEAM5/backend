@@ -23,6 +23,7 @@ public class UserController {
 
     @GetMapping("/api/users/me")
     public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal Member member) {
+        System.out.println(3);
         if (member == null) return ResponseEntity.status(401).body(Map.of("error","Unauthorized"));
         var body = Map.of(
                 "id", member.getId(),

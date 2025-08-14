@@ -43,6 +43,7 @@ public class AuthController {
 
     @GetMapping("/google")
     public ResponseEntity<Void> redirectToGoogle(HttpSession session) {
+        System.out.println(0);
         String state = java.util.UUID.randomUUID().toString();
         session.setAttribute("OAUTH2_STATE", state);
 
@@ -87,6 +88,8 @@ public class AuthController {
 
         String tokenUri = "https://oauth2.googleapis.com/token";
 
+
+
         // 1) 코드 → 토큰 교환
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("code", code);
@@ -120,6 +123,8 @@ public class AuthController {
                     restTemplate.exchange(userinfoUrl, HttpMethod.GET, new HttpEntity<>(uh), String.class);
             Map<String, Object> userInfo = OM.readValue(userInfoRes.getBody(), Map.class);
 
+
+
             // 3) 멤버 upsert → tokenVersion 읽기
             String externalId = String.valueOf(userInfo.getOrDefault("id", "unknown"));
             String email      = (String) userInfo.get("email");
@@ -145,6 +150,9 @@ public class AuthController {
             out.setCacheControl(CacheControl.noStore());
             out.add("Pragma", "no-cache");
 
+            String redirectUrl = frontendMainUrl + "?access=" + pair.accessToken();
+            out.setLocation(URI.create(redirectUrl));
+
             ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", pair.refreshToken())
                     .httpOnly(true)
                     .secure(false)      // 운영 HTTPS면 true + sameSite(None)
@@ -157,6 +165,9 @@ public class AuthController {
             ResponseCookie killLegacy = ResponseCookie.from("refreshToken", "")
                     .httpOnly(true).secure(false).sameSite("Lax").path("/").maxAge(0).build();
             out.add(HttpHeaders.SET_COOKIE, killLegacy.toString());
+
+
+
 
             // 6) 프론트 메인으로 Redirect (Access는 URL에 싣지 않음)
             String sep = frontendMainUrl.contains("?") ? "&" : "?";
