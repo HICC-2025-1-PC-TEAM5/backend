@@ -69,6 +69,12 @@ public class IngredientController {
         return ResponseEntity.ok(ingredientList);
     }
 
+    @GetMapping("/api/users/{userId}/fridge/necessary")
+    public ResponseEntity<IngredientListResponse> getNecessaryIngredients(@PathVariable Long userId) {
+        IngredientListResponse necessaryIngredients = ingredientService.getNecessaryIngredients(userId);
+        return ResponseEntity.ok(necessaryIngredients);
+    }
+
 
 
 

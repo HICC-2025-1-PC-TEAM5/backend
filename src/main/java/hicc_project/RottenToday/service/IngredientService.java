@@ -23,10 +23,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class IngredientService {
@@ -375,6 +372,27 @@ public class IngredientService {
             }
         }
         return new IngredientResponseDto(ingredientResponse);
+
+    }
+
+    public IngredientListResponse getNecessaryIngredients(Long memberId) { //기본적인 재료 구비 안되어있을때 구비 추천 기능
+        List<String> ingredient = new ArrayList<>(
+                Arrays.asList("간장", "소금", "된장", "고추장", "식용유", "마늘", "쌀")
+        );
+        List<IngredientResponse> ingredientResponseList = new ArrayList<>();
+        List<RefrigeratorIngredient> byMemberId = refrigeratorIngredientRepository.findByMemberId(memberId);
+        for (RefrigeratorIngredient refrigeratorIngredient : byMemberId) {
+            if (ingredient.contains(refrigeratorIngredient.getName())){
+                ingredient.remove(refrigeratorIngredient.getName());
+            }
+        }
+        for (String ingredientName : ingredient) {
+            Ingredient byName = ingredientRepository.findByName(ingredientName).orElseThrow();
+            IngredientResponse ingredientResponse = new IngredientResponse(byName);
+            ingredientResponseList.add(ingredientResponse);
+        }
+
+        return new IngredientListResponse(ingredientResponseList);
 
     }
 }
