@@ -3,10 +3,7 @@ package hicc_project.RottenToday.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.dto.*;
-import hicc_project.RottenToday.entity.Member;
-import hicc_project.RottenToday.entity.Recipe;
-import hicc_project.RottenToday.entity.RecipeStep;
-import hicc_project.RottenToday.entity.Taste;
+import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.exception.DuplicateEntityException;
 import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
@@ -63,11 +60,11 @@ public class RecipeService {
 
     }
 
-    public List<RecipeResponseDto> getRecipeByIngredients(List<String> ingredients) {
+    public List<RecipeResponseDto> getRecipeByIngredients(List<String> ingredients, Long memberId) {
         String ingredintParam = ingredients.stream()
                 .map(ing -> "RCP_PARTS_DTLS=" + UriUtils.encode(ing, "UTF-8"))
                 .collect(Collectors.joining("&"));
-        String url = "http://openapi.foodsafetykorea.go.kr/api/cd8fddb933aa46f18d93/COOKRCP01/json/1/10/" + ingredintParam;
+        String url = "http://openapi.foodsafetykorea.go.kr/api/cd8fddb933aa46f18d93/COOKRCP01/json/1/15/" + ingredintParam;
         //String url = "http://openapi.foodsafetykorea.go.kr/api/addc15725715465c947d/COOKRCP01/json/1/10/" + ingredintParam;
         String json = restTemplate.getForObject(url, String.class);
         try {
@@ -75,8 +72,42 @@ public class RecipeService {
             List<RecipeResponseDto> recipeList = response.getCookrcp01().getRow().stream()
                     .map(RecipeResponseDto::from)
                     .collect(Collectors.toList());
+
+            Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 없음"));
+            List<Allergy> allergies = member.getAllergies();
+            List<Taste> tastes = member.getTastes();
+
+
             for (RecipeResponseDto dto : recipeList) {
                 Recipe recipe = new Recipe(dto);
+                int favorite = 0;  //좋아함 1 안좋아함 -1 표시x는 0
+                boolean allergyType = false;
+
+                for (Allergy allergy : allergies) {   //알러지 재료 포함되면 추천 x
+                    String ingredient = allergy.getIngredient().getName();
+                    if (recipe.getIngredients().contains(ingredient)) {
+                        allergyType = true;
+                        break;
+                    };
+                }
+                if (allergyType) {
+                    continue;
+                }
+
+                for (Taste taste: tastes) {  //취향 아닌 레시피 포함되면 추천x
+                    if (taste.getRecipe().getName().equals(recipe.getName())) {
+                        if (taste.getType().getStatus().equals("좋아요")) {
+                            favorite = 1;
+                        } else if (taste.getType().getStatus().equals("싫어요")) {
+                            favorite = -1;
+                        }
+                    }
+                }
+                if (favorite < 0) {
+                    continue;
+                }
+
+
                 List<RecipeStep> steps = dto.getSteps();
                 for (RecipeStep step : steps) {
                     step.setRecipe(recipe);

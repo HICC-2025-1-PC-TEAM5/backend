@@ -24,6 +24,8 @@ public class Recipe {
     private Double carbohydrate;
     private Double fat;
     private String portion = "1인분";
+
+    @Column(length = 1000)
     private String ingredients;
 
 

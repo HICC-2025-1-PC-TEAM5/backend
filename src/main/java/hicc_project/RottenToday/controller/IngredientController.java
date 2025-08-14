@@ -25,7 +25,7 @@ public class IngredientController {
         this.openAiService = openAiService;
     }
 
-    @PostMapping("/api/users/fridge/receipt-to-ingredients")
+    @PostMapping("/api/users/{userId}/fridge/receipt-to-ingredients")
     public ResponseEntity<List<IngredientDto>> receiptToIngredients(@RequestParam MultipartFile image) throws IOException, InterruptedException {
         List<List<String>> response = ingredientService.detectIngredient(image);
         List<IngredientDto> chatCompletion = openAiService.getChatCompletion(response.toString());
@@ -58,8 +58,8 @@ public class IngredientController {
     }
 
     @GetMapping("/api/users/{userId}/ingredientlist/{ingredientId}")
-    public ResponseEntity<IngredientResponse> getIngredientDetail(@PathVariable Long userId, @PathVariable Long ingredientId) {
-        IngredientResponse ingredientDetail = ingredientService.getIngredientDetail(userId, ingredientId);
+    public ResponseEntity<IngredientResponseDto> getIngredientDetail(@PathVariable Long userId, @PathVariable Long ingredientId) {
+        IngredientResponseDto ingredientDetail = ingredientService.getIngredientDetail(userId, ingredientId);
         return ResponseEntity.ok(ingredientDetail);
     }
 

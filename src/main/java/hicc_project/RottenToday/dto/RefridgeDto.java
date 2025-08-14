@@ -19,6 +19,7 @@ public class RefridgeDto {
     private String unit;
     private int quantity;
     private String type; //보관 상태
+    private String imageUrl;
 
     private LocalDateTime input_date;  //냉장고 반입 시점
     private LocalDateTime expire_date; //소비기한
@@ -35,5 +36,8 @@ public class RefridgeDto {
         this.input_date = refrigeratorIngredient.getInput_date();
         this.expire_date = refrigeratorIngredient.getExpire_date();
         this.category = refrigeratorIngredient.getCategory().getType();
+        if (refrigeratorIngredient.getIngredient() != null) {
+            this.imageUrl = refrigeratorIngredient.getIngredient().getImageUrl();
+        }
     }
 }

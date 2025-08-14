@@ -28,9 +28,9 @@ public class RecipeController {
         return ResponseEntity.ok("ok");
     }
 
-    @PostMapping("/api/users/recipes")
-    public ResponseEntity<List<RecipeResponseDto>> recommendRecipe(@RequestBody List<String> ingredients) {
-        List<RecipeResponseDto> recipeByIngredients = recipeService.getRecipeByIngredients(ingredients);
+    @PostMapping("/api/users/{userId}/recipes")
+    public ResponseEntity<List<RecipeResponseDto>> recommendRecipe(@RequestBody List<String> ingredients, @PathVariable Long userId) {
+        List<RecipeResponseDto> recipeByIngredients = recipeService.getRecipeByIngredients(ingredients, userId);
         return ResponseEntity.ok(recipeByIngredients);
     }
 

@@ -1,13 +1,12 @@
 package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.*;
+import hicc_project.RottenToday.dto.DislikeDto;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.exception.DuplicateEntityException;
 import hicc_project.RottenToday.repository.*;
 import hicc_project.RottenToday.dto.TasteRecipeDto;
-import hicc_project.RottenToday.dto.TasteRecipeListResponse;
 import hicc_project.RottenToday.dto.TasteRecipeResponse;
-import hicc_project.RottenToday.entity.Appetite;
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.entity.Recipe;
 import hicc_project.RottenToday.entity.Taste;
@@ -44,13 +43,22 @@ public class UserService {
         this.ingredientRepository = ingredientRepository;
     }
 
-    public TasteRecipeResponse getTaste(Long userId) {
+    public PreferenceDto getTaste(Long userId) {
         List<Taste> recipes = tasteRepository.findByMemberId(userId);
-        List<TasteRecipeDto> response = new ArrayList<>();
+        List<LikeDto> likes = new ArrayList<>();
+        List<DislikeDto> dislikes = new ArrayList<>();
         for (Taste recipe : recipes) {
-            response.add(new TasteRecipeDto(recipe.getRecipe()));
+            if (recipe.getType().getStatus() == "좋아요"){
+                TasteRecipeDto tasteRecipeDto = new TasteRecipeDto(recipe);
+                LikeDto likeDto = new LikeDto(tasteRecipeDto);
+                likes.add(likeDto);
+            } else {
+                TasteRecipeDto tasteRecipeDto = new TasteRecipeDto(recipe);
+                DislikeDto dislikeDto = new DislikeDto(tasteRecipeDto);
+                dislikes.add(dislikeDto);
+            }
         }
-        return new TasteRecipeResponse(response);
+        return new PreferenceDto(likes,dislikes);
     }
 
     public void updateTaste(Long userId, Long recipeId, String appetite) {
@@ -63,7 +71,7 @@ public class UserService {
             throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요' 입력할 수 있습니다.");
         }
 
-        if (tasteRepository.findByRecipeId(recipeId).isPresent()){
+        if (tasteRepository.findByRecipeIdAndMemberId(recipeId, userId).isPresent()){
             throw new DuplicateEntityException("이미 해당 레시피를 저장하였습니다.");
         }
 
@@ -118,13 +126,10 @@ public class UserService {
     }
 
 
+    @Transactional
     public void updateFavorites(Long userId, FavoriteRequestDto requestDto) {
         History history = historyRepository.findById(requestDto.getHistoryId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         history.setFavorite(requestDto.isType());
-        if (historyRepository.existsById(history.getId())) {
-            throw new DuplicateEntityException("이미 즐겨찾기한 요리 기록입니다.");
-        }
-        historyRepository.save(history);
 
     }
 

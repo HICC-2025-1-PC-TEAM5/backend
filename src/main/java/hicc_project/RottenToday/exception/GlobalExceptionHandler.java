@@ -26,6 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateEntityException.class)
     public ResponseEntity<String> handleDuplicateException(DuplicateEntityException ex) {
         return ResponseEntity.status(409).body(ex.getMessage());
+    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {

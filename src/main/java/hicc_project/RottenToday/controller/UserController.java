@@ -40,9 +40,9 @@ public class UserController {
     }
 
     @GetMapping("/api/users/{userId}/preference")
-    public ResponseEntity<TasteRecipeResponse> getUserPreference(@PathVariable Long userId) {
-        TasteRecipeResponse tasteRecipeResponse = userService.getTaste(userId);
-        return ResponseEntity.ok(tasteRecipeResponse);
+    public ResponseEntity<PreferenceDto> getUserPreference(@PathVariable Long userId) {
+        PreferenceDto response = userService.getTaste(userId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/api/users/{userId}/preference")

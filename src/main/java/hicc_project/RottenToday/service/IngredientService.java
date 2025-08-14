@@ -75,18 +75,29 @@ public class IngredientService {
             refrigeratorIngredientRepository.save(refrigeratorIngredient);
         }
     }
-
+    @Transactional
     public void updateRefridgeIngredient(Long memberId, RefridgeIngredientRequest request) {
-        List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
-        for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
-            if (refrigeratorIngredient.getId().equals(request.getRefrigeratorIngredientId())) {
-                if (request.getQuantity() == 0) {
-                    refrigeratorIngredientRepository.delete(refrigeratorIngredient);
-                } else {
-                    refrigeratorIngredient.setQuantity(request.getQuantity());
-                }
+        Optional<RefrigeratorIngredient> byId = refrigeratorIngredientRepository.findById(request.getRefrigeratorIngredientId());
+        if (byId.isPresent()) {
+            RefrigeratorIngredient refrigeratorIngredient = byId.get();
+            if (request.getQuantity() == 0){
+                refrigeratorIngredientRepository.delete(refrigeratorIngredient);
+            } else {
+                refrigeratorIngredient.setQuantity(request.getQuantity());
             }
+        } else {
+            throw new EntityNotFoundException("해당하는 재료를 찾을 수 없음");
         }
+//        List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
+//        for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
+//            if (refrigeratorIngredient.getId().equals(request.getRefrigeratorIngredientId())) {
+//                if (request.getQuantity() == 0) {
+//                    refrigeratorIngredientRepository.delete(refrigeratorIngredient);
+//                } else {
+//                    refrigeratorIngredient.setQuantity(request.getQuantity());
+//                }
+//            }
+//        }
     }
 
     public void deleteIngredient(Long memberId, Long refridgeId) {
@@ -325,31 +336,32 @@ public class IngredientService {
 
 
     public IngredientListResponse getIngredientList(Long memberId) {
-        Optional<Member> byId = memberRepository.findById(memberId);
-        if (byId.isPresent()) {
-            Member member = byId.get();
-            List<Allergy> allergies = member.getAllergies();
-            List<Ingredient> ingredientList = ingredientRepository.findAll();
-            List<IngredientResponse> ingredientResponseList = new ArrayList<>();
-            for (Ingredient ingredient : ingredientList) {
-                for (Allergy allergy : allergies) { //재료 정보에 알러지 표시
-                    IngredientResponse ingredientResponse = new IngredientResponse(ingredient);
-                    if (allergy.getIngredient().equals(ingredient)) {
-                        ingredientResponse.setAllergy(true);
-                        break;
-                    } else {
-                        ingredientResponse.setAllergy(false);
-                    }
-                    ingredientResponseList.add(ingredientResponse);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저는 존재하지 않습니다."));
+
+        List<Allergy> allergies = member.getAllergies();
+        List<Ingredient> ingredientList = ingredientRepository.findAll();
+        List<IngredientResponse> ingredientResponseList = new ArrayList<>();
+
+        for (Ingredient ingredient : ingredientList) {
+            boolean isAllergy = false;
+
+            for (Allergy allergy : allergies) {
+                if (allergy.getIngredient().equals(ingredient)) {
+                    isAllergy = true;
+                    break;
                 }
             }
-            return new IngredientListResponse(ingredientResponseList);
-        } else {
-            throw new EntityNotFoundException("해당 유저는 존재하지 않습니다.");
+
+            IngredientResponse ingredientResponse = new IngredientResponse(ingredient);
+            ingredientResponse.setAllergy(isAllergy);
+            ingredientResponseList.add(ingredientResponse);
         }
+
+        return new IngredientListResponse(ingredientResponseList);
     }
 
-    public IngredientResponse getIngredientDetail(Long memberId, Long ingredientId) {
+    public IngredientResponseDto getIngredientDetail(Long memberId, Long ingredientId) {
         Ingredient ingredient = ingredientRepository.findById(ingredientId).orElseThrow(() -> new EntityNotFoundException("해당하는 재료 정보 없음"));
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당되는 유저 정보 없음"));
         List<Allergy> allergies = member.getAllergies();
@@ -362,7 +374,7 @@ public class IngredientService {
                 ingredientResponse.setAllergy(false);
             }
         }
-        return ingredientResponse;
+        return new IngredientResponseDto(ingredientResponse);
 
     }
 }
