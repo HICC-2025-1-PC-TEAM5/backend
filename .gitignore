@@ -39,3 +39,38 @@ out/
 
 src/main/java/hicc_project/RottenToday/config/OpenAiProperties.java
 src/main/resources/application.properties
+# Gradle/Java
+.gradle/
+build/
+out/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Local overrides (프로덕션 서버 전용 파일)
+#/opt/rottentoday/application.properties  # <- 리포지토리 밖이라 상관없지만 혹시 경로가 repo 안에 있으면 포함 금지
+app.jar
+*.jar
+# Build/Gradle
+build/
+out/
+.gradle/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# JAR 등 대용량 산출물
+*.jar
+app.jar
