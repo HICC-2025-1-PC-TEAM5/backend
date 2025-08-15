@@ -64,6 +64,8 @@ public class IngredientService {
                 refrigeratorIngredient.setCategory(ingredient.getCategory());
             }
             refrigeratorIngredient.setMember(member);
+            LocalDateTime now = LocalDateTime.now();
+            refrigeratorIngredient.setInput_date(now);
             int plusDays = measureExpireDate(refrigeratorIngredient.getCategory(), refrigeratorIngredient.getType());
             LocalDateTime expireDate = refrigeratorIngredient.getInput_date().plusDays(plusDays);
 

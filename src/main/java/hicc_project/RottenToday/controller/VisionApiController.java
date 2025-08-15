@@ -32,7 +32,7 @@ public class VisionApiController {
         this.s3UploadService = s3UploadService;
     }
 
-    @PostMapping("/api/users/{user_id}/fridge/image-to-ingredients")
+    @PostMapping("/api/users/{userId}/fridge/image-to-ingredients")
     public ResponseEntity<List<IngredientDto>> analyzeIngredients(@RequestParam("image") MultipartFile image) throws IOException {
 //        byte[] imageBytes =image.getBytes();
 //        ImageToIngredientResponse labels = visionService.detectIngredient(imageBytes);

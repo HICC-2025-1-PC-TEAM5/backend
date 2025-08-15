@@ -13,6 +13,7 @@ public class Ingredient {
     private String name;
     private Category category;
 
+    @Column(length = 1000)
     private String imageUrl;
 
 
