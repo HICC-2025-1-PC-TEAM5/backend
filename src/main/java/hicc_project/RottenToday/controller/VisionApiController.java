@@ -34,10 +34,13 @@ public class VisionApiController {
 
     @PostMapping("/api/users/{userId}/fridge/image-to-ingredients")
     public ResponseEntity<List<IngredientDto>> analyzeIngredients(@RequestParam("image") MultipartFile image) throws IOException {
-//        byte[] imageBytes =image.getBytes();
-//        ImageToIngredientResponse labels = visionService.detectIngredient(imageBytes);
-        String url = s3UploadService.saveFile(image);
-        List<IngredientDto> getimagetoingredient = openAiService.getimagetoingredient(url);
+        System.out.println(123123);
+        byte[] imageBytes =image.getBytes();
+        ImageToIngredientResponse labels = visionService.detectIngredient(imageBytes);
+        //String url = s3UploadService.saveFile(image);
+        //System.out.println(url);
+        //List<IngredientDto> getimagetoingredient = openAiService.getimagetoingredient(url);
+        List<IngredientDto> getimagetoingredient = openAiService.getpicturetoingredient(labels.getIngredient());
 
         return ResponseEntity.ok(getimagetoingredient);
 

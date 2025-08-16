@@ -43,6 +43,8 @@ public class OpenAiService {
                 "- 식재료가 아니면 제외  \n" +
                 "- 분류 어려우면 category와 subcategory 모두 \"기타\"  \n" +
                 "- name은 이미지 속 식재료명 그대로 표기 (영어는 한글 변환)" +
+                "- 색깔로 출력하지 말고 형태도 같이 고려해서 알려줘" +
+                "- 잘모르겠으면 null값으로 줘도 돼" +
                 "- 주의 사항은 필요없음, 식재료 배열 json만 출력";
 
         ChatRequest request = ChatRequest.builder()
@@ -138,6 +140,7 @@ public class OpenAiService {
 
 
 
+
     public List<IngredientDto> getChatCompletion(String message) {
         String systemPrompt = "당신은 영수증에 명시된 글자들을 보고 식재료를 분류하는 AI입니다.\n" +
                 "입력된 식재료에 대해 아래 JSON 형식으로 분류하세요.\n" +
@@ -148,6 +151,120 @@ public class OpenAiService {
                 "- 육류는 subcategory에 돼지고기, 소고기 등 중분류까지만\n" +
                 "- 나머지는 subcategory에 일반화된 명칭 대신 식재료명 그대로 사용\n" +
                 "- 분류 불가능하면 category = \"기타\", subcategory = \"기타\"\n" +
+                "\n" +
+                "예시 입력:\n" +
+                "[\"깐마늘\", \"딸기\", \"돼지고기\"]\n" +
+                "\n" +
+                "예시 출력:\n" +
+                "[\n" +
+                "  {\"name\": \"깐마늘\", \"category\": \"채소류\", \"subcategory\": \"깐마늘\"},\n" +
+                "  {\"name\": \"딸기\", \"category\": \"과일류\", \"subcategory\": \"딸기\"},\n" +
+                "  {\"name\": \"돼지고기\", \"category\": \"육류\", \"subcategory\": \"돼지고기\"}\n" +
+                "]";
+
+        ChatRequest request = ChatRequest.builder()
+                .model("gpt-4.1")
+                .messages(List.of(
+                        ChatMessage.builder()
+                                .role("system")
+                                .content(systemPrompt)
+                                .build(),
+                        ChatMessage.builder()
+                                .role("user")
+                                .content(message)
+                                .build()
+                ))
+                .maxTokens(2000)
+                .temperature(0.3)
+                .build();
+
+
+        try {
+
+
+            log.info("GPT API 호출 시작 - URL: {}", openAiProperties.getUrl());
+            log.debug("요청 데이터: {}", request);
+
+            ChatResponse response = webClient.post()
+                    .uri("/v1/chat/completions")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + openAiProperties.getKey().trim())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(status -> status.is4xxClientError(), clientResponse -> {
+                        log.error("GPT API 클라이언트 오류 발생: {}", clientResponse.statusCode());
+                        return clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> {
+                                    log.error("오류 응답 본문: {}", errorBody);
+                                    return Mono.error(new RuntimeException("GPT API 클라이언트 오류 (" +
+                                            clientResponse.statusCode() + "): " + errorBody));
+                                });
+                    })
+                    .onStatus(status -> status.is5xxServerError(), serverResponse -> {
+                        log.error("GPT API 서버 오류 발생: {}", serverResponse.statusCode());
+                        return serverResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> {
+                                    log.error("서버 오류 응답 본문: {}", errorBody);
+                                    return Mono.error(new RuntimeException("GPT API 서버 오류 (" +
+                                            serverResponse.statusCode() + "): " + errorBody));
+                                });
+                    })
+                    .bodyToMono(ChatResponse.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();
+
+            log.info("GPT API 응답 수신 완료 = {}", response);
+
+
+
+            String content = response.getChoices().get(0).getMessage().getContent();
+            ObjectMapper mapper = new ObjectMapper();
+            List<IngredientDto> ingredients =
+                    mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
+            log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
+
+            List<IngredientDto> ingredients2 = new ArrayList<>();
+            for (IngredientDto ingredient : ingredients) {
+                if (ingredient.getCategory().equals("가공식품") || ingredient.getCategory().equals("음료류")) {
+                    IngredientDto dto = new IngredientDto();
+                    dto.setCategory(ingredient.getCategory());
+                    dto.setName(ingredient.getName());
+                    ingredients2.add(dto);
+                } else {
+                    IngredientDto dto = new IngredientDto();
+                    dto.setCategory(ingredient.getCategory());
+                    dto.setName(ingredient.getSubcategory());
+                    ingredients2.add(dto);
+                }
+            }
+
+
+            return ingredients2;
+
+        } catch (WebClientRequestException e) {
+            log.error("GPT API 요청 전송 실패", e);
+            throw new RuntimeException("GPT API 요청 전송 실패: " + e.getMessage(), e);
+        } catch (WebClientResponseException e) {
+            log.error("GPT API 응답 오류 - 상태코드: {}, 응답본문: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("GPT API 응답 오류 (" + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            log.error("GPT API 호출 중 예상치 못한 오류", e);
+            throw new RuntimeException("GPT API 호출 중 예상치 못한 오류 발생: " + e.getMessage(), e);
+        }
+    }
+
+    public List<IngredientDto> getpicturetoingredient(List<String> labels) {
+        String message = labels.toString();
+        String systemPrompt = "당신은 google vision api에서 이미지를 보고 반환된 글자들을 보고 식재료를 분류하는 AI입니다.\n" +
+                "입력된 식재료에 대해 아래 JSON 형식으로 분류하세요.\n" +
+                "\n" +
+                "- 형식: [{\"name\": \"깐마늘\", \"category\": \"채소류\", \"subcategory\": \"깐마늘\"}, ...]\n" +
+                "- 식재료명이 아니면 제외\n" +
+                "- category(대분류): 채소류, 과일류, 곡류/전분류, 육류, 어패류, 달걀/난류, 유제품, 두류/콩류, 기름/지방류, 조미료/향신료, 가공식품, 음료류, 기타 중 선택\n" +
+                "- 육류는 subcategory에 돼지고기, 소고기 등 중분류까지만\n" +
+                "- 나머지는 subcategory에 일반화된 명칭 대신 식재료명 그대로 사용\n" +
+                "- 분류 불가능하면 category = \"기타\", subcategory = \"기타\"\n" +
+                "- 한글로 적어줘야해\n" +
                 "\n" +
                 "예시 입력:\n" +
                 "[\"깐마늘\", \"딸기\", \"돼지고기\"]\n" +

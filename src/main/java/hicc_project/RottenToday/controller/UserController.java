@@ -5,6 +5,7 @@ import hicc_project.RottenToday.dto.RecipeRequestDto;
 import hicc_project.RottenToday.dto.TasteRecipeListResponse;
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 public class UserController {
     @Autowired
@@ -81,7 +83,9 @@ public class UserController {
 
     @GetMapping("/api/users/{userId}/history")
     public ResponseEntity<HistoryListResponse> getHistory(@PathVariable Long userId) {
+        log.info("getting history");
         HistoryListResponse history = userService.getHistory(userId);
+
         return ResponseEntity.ok(history);
     }
 

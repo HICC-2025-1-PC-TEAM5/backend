@@ -1,10 +1,8 @@
 package hicc_project.RottenToday.controller;
 
 import hicc_project.RottenToday.dto.*;
-import hicc_project.RottenToday.entity.RefrigeratorIngredient;
 import hicc_project.RottenToday.service.IngredientService;
 import hicc_project.RottenToday.service.OpenAiService;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class IngredientController {
@@ -39,21 +38,27 @@ public class IngredientController {
     }
 
     @PostMapping("/api/users/{userId}/fridge/ingredients")
-    public ResponseEntity<String> addRefrigeratorIngredient(@PathVariable Long userId, @RequestBody RefrigeratorIngredientResponse request) {
+    public ResponseEntity<Map<String, String>> addRefrigeratorIngredient(@PathVariable Long userId, @RequestBody RefrigeratorIngredientResponse request) {
         ingredientService.addRefridgeIngredient(userId, request);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(Map.of("status", "ok"));
     }
 
     @PatchMapping("/api/users/{userId}/fridge/ingredients")
-    public ResponseEntity<String> updateRefrigeratorIngredient(@PathVariable Long userId, @RequestBody RefridgeIngredientRequest request) {
+    public ResponseEntity<Map<String, String>> updateRefrigeratorIngredient(@PathVariable Long userId, @RequestBody RefridgeIngredientRequest request) {
         ingredientService.updateRefridgeIngredient(userId, request);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(Map.of("status", "ok"));
     }
 
     @DeleteMapping("/api/users/{userId}/fridge/ingredients/{refrigeratorId}")
-    public ResponseEntity<String> deleteRefrigeratorIngredient(@PathVariable Long userId, @PathVariable Long refrigeratorId) {
+    public ResponseEntity<Map<String, String>> deleteRefrigeratorIngredient(@PathVariable Long userId, @PathVariable Long refrigeratorId) {
         ingredientService.deleteIngredient(userId, refrigeratorId);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(Map.of("status", "ok"));
+
+    }
+    @GetMapping("/api/users/{userId}/fridge/ingredients/{refrigeratorId}")
+    public ResponseEntity<RefridgeDto> getRefrigeratorIngredient(@PathVariable Long userId, @PathVariable Long refrigeratorId) {
+        RefridgeDto refridgeIngredient = ingredientService.getRefridgeIngredient(refrigeratorId);
+        return ResponseEntity.ok(refridgeIngredient);
 
     }
 

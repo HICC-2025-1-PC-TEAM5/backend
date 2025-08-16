@@ -10,6 +10,7 @@ import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.RecipeStepRepository;
 import hicc_project.RottenToday.repository.TasteRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -18,6 +19,7 @@ import org.springframework.web.util.UriUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class RecipeService {
     private final RecipeRepository recipeRepository;
@@ -115,6 +117,7 @@ public class RecipeService {
                 Recipe save = recipeRepository.save(recipe);
                 dto.setId(save.getId());
             }
+            log.info("recipe : {}", recipeList);
             return recipeList;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("레시피 파싱 실패", e);

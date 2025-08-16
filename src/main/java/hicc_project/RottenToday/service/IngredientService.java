@@ -397,4 +397,14 @@ public class IngredientService {
         return new IngredientListResponse(ingredientResponseList);
 
     }
+
+    public RefridgeDto getRefridgeIngredient(Long refrigeratorId) {
+        Optional<RefrigeratorIngredient> byId = refrigeratorIngredientRepository.findById(refrigeratorId);
+        if (byId.isPresent()) {
+            RefrigeratorIngredient refrigeratorIngredient = byId.get();
+            return new RefridgeDto(refrigeratorIngredient);
+        } else {
+            throw new EntityNotFoundException("해당 냉장고 재료 없음");
+        }
+    }
 }
