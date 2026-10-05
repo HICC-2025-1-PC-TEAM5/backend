@@ -6,6 +6,7 @@ import hicc_project.RottenToday.service.JwtService;
 import hicc_project.RottenToday.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -19,6 +20,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v2/oauth2")
 @RequiredArgsConstructor
@@ -178,8 +180,10 @@ public class AuthController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(e.getResponseBodyAsString());
         } catch (Exception e) {
+            // 예외 메시지에 내부 정보가 있을 수 있어 응답에는 고정 문구만 보낸다 (D-011)
+            log.error("OAuth 콜백 처리 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "internal_error", "message", e.getMessage()));
+                    .body(Map.of("error", "internal_error", "message", "서버 오류가 발생했습니다."));
         }
     }
 }
