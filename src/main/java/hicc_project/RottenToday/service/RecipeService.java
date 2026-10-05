@@ -70,11 +70,15 @@ public class RecipeService {
     }
 
     public List<RecipeResponseDto> getRecipeByIngredients(List<String> ingredients, Long memberId) {
+        long serviceStart = System.nanoTime();
         String ingredintParam = ingredients.stream()
                 .map(ing -> "RCP_PARTS_DTLS=" + UriUtils.encode(ing, "UTF-8"))
                 .collect(Collectors.joining("&"));
         String url = foodSafetyBaseUrl + "/" + foodSafetyApiKey + "/COOKRCP01/json/1/15/" + ingredintParam;
+        long externalStart = System.nanoTime();
         String json = restTemplate.getForObject(url, String.class);
+        long externalMs = (System.nanoTime() - externalStart) / 1_000_000;
+        int saved = 0;
         try {
             CookRecipeResponse response = objectMapper.readValue(json, CookRecipeResponse.class);
             List<RecipeResponseDto> recipeList = response.getCookrcp01().getRow().stream()
@@ -122,8 +126,13 @@ public class RecipeService {
                 }
                 Recipe save = recipeRepository.save(recipe);
                 dto.setId(save.getId());
+                saved++;
             }
             log.info("recipe : {}", recipeList);
+            // 측정용 (D-010). URL에 키가 있으므로 URL은 남기지 않는다
+            long serviceMs = (System.nanoTime() - serviceStart) / 1_000_000;
+            log.info("recipe.metrics externalCalls=1 externalMs={} serviceMs={} returned={} saved={}",
+                    externalMs, serviceMs, recipeList.size(), saved);
             return recipeList;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("레시피 파싱 실패", e);
