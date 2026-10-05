@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
@@ -76,7 +78,17 @@ public class RecipeService {
                 .collect(Collectors.joining("&"));
         String url = foodSafetyBaseUrl + "/" + foodSafetyApiKey + "/COOKRCP01/json/1/15/" + ingredintParam;
         long externalStart = System.nanoTime();
-        String json = restTemplate.getForObject(url, String.class);
+        String json;
+        try {
+            json = restTemplate.getForObject(url, String.class);
+        } catch (RestClientException e) {
+            // RestTemplate 예외 메시지에는 키가 포함된 요청 URL이 들어가므로 원래 예외를 전달하지 않는다
+            String reason = (e instanceof RestClientResponseException re)
+                    ? "HTTP " + re.getStatusCode().value()
+                    : e.getClass().getSimpleName();
+            log.warn("식품안전나라 레시피 조회 실패: {}", reason);
+            throw new RuntimeException("레시피 외부 API 호출 실패: " + reason, e.getCause());
+        }
         long externalMs = (System.nanoTime() - externalStart) / 1_000_000;
         int saved = 0;
         try {
