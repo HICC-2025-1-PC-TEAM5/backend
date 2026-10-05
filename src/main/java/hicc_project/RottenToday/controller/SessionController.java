@@ -24,15 +24,11 @@ public class SessionController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@CookieValue(name="refresh_token", required=false) String refresh) {
-        System.out.println(2);
         if (refresh == null || refresh.isBlank()) {
-            System.out.println(refresh);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error","no_refresh_cookie"));
         }
         var pair = jwtService.refresh(refresh); // 검증 + 로테이션
 
-        System.out.println("a");
-        System.out.println(pair.accessToken());
         HttpHeaders out = new HttpHeaders();
         out.setCacheControl(CacheControl.noStore());
         out.add("Pragma", "no-cache");
@@ -41,14 +37,10 @@ public class SessionController {
                 .httpOnly(true).secure(false).sameSite("Lax").path("/")
                 .maxAge(pair.refreshExpiresInSeconds()).build();
         out.add(HttpHeaders.SET_COOKIE, newRefresh.toString());
-        System.out.println("b");
         ResponseCookie killLegacy = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true).secure(false).sameSite("Lax").path("/").maxAge(0).build();
         out.add(HttpHeaders.SET_COOKIE, killLegacy.toString());
 
-        System.out.println("c");
-
-        log.info("access = {}", pair.accessToken());
         return new ResponseEntity<>(
                 Map.of("message","OK",
                         "data", Map.of("access", pair.accessToken(), "expiresIn", pair.accessExpiresInSeconds())),

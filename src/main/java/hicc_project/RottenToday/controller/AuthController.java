@@ -43,7 +43,6 @@ public class AuthController {
 
     @GetMapping("/google")
     public ResponseEntity<Void> redirectToGoogle(HttpSession session) {
-        System.out.println(0);
         String state = java.util.UUID.randomUUID().toString();
         session.setAttribute("OAUTH2_STATE", state);
 
