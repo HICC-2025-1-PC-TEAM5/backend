@@ -6,11 +6,9 @@ import hicc_project.RottenToday.dto.RecipeResponseDto;
 import hicc_project.RottenToday.service.RecipeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,21 +36,9 @@ public class RecipeController {
             @RequestBody List<String> ingredients,
             @PathVariable Long userId
     ) {
-        log.info("recommendRecipe");
-        log.info("ingredients: {}", ingredients);
-        log.info("ingredients: {}, {}", ingredients.getFirst(), ingredients.getLast());
-        if (ingredients == null) ingredients = new ArrayList<>();
-        if (userId == null) return ResponseEntity.badRequest().build();
-
-        List<RecipeResponseDto> recipeByIngredients;
-        try {
-            recipeByIngredients = recipeService.getRecipeByIngredients(ingredients, userId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        log.info("recipeByIngredients, {}", recipeByIngredients.getFirst().getName());
+        log.info("recommendRecipe ingredients: {}", ingredients);
+        // 입력 검증과 예외 → 상태 코드 변환은 서비스와 GlobalExceptionHandler가 맡는다
+        List<RecipeResponseDto> recipeByIngredients = recipeService.getRecipeByIngredients(ingredients, userId);
         return ResponseEntity.ok(Map.of("recipe", recipeByIngredients));
     }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.exception.DuplicateEntityException;
+import hicc_project.RottenToday.exception.NoInputException;
 import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.RecipeStepRepository;
@@ -73,6 +74,9 @@ public class RecipeService {
 
     public List<RecipeResponseDto> getRecipeByIngredients(List<String> ingredients, Long memberId) {
         long serviceStart = System.nanoTime();
+        if (ingredients == null || ingredients.isEmpty()) {
+            throw new NoInputException("재료를 하나 이상 입력해 주세요.");
+        }
         String ingredintParam = ingredients.stream()
                 .map(ing -> "RCP_PARTS_DTLS=" + UriUtils.encode(ing, "UTF-8"))
                 .collect(Collectors.joining("&"));
@@ -93,7 +97,23 @@ public class RecipeService {
         int saved = 0;
         try {
             CookRecipeResponse response = objectMapper.readValue(json, CookRecipeResponse.class);
-            List<RecipeResponseDto> recipeList = response.getCookrcp01().getRow().stream()
+            CookRcp01 body = response.getCookrcp01();
+            if (body == null) {
+                throw new RuntimeException("레시피 외부 API 응답 형식 오류");
+            }
+            if (body.getRow() == null) {
+                // row가 없으면 RESULT.CODE로 0건(INFO-200)과 오류(인증키 오류 등)를 구분한다. MSG는 남기지 않는다
+                String code = body.getResult() != null ? body.getResult().getCode() : null;
+                if (!"INFO-200".equals(code)) {
+                    log.warn("식품안전나라 레시피 조회 오류 코드: {}", code);
+                    throw new RuntimeException("레시피 외부 API 오류: " + code);
+                }
+                long serviceMs = (System.nanoTime() - serviceStart) / 1_000_000;
+                log.info("recipe.metrics externalCalls=1 externalMs={} serviceMs={} returned=0 saved=0",
+                        externalMs, serviceMs);
+                return List.of();
+            }
+            List<RecipeResponseDto> recipeList = body.getRow().stream()
                     .map(RecipeResponseDto::from)
                     .collect(Collectors.toList());
 
