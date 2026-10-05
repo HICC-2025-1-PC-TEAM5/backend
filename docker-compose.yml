@@ -15,7 +15,8 @@ services:
     ports:
       - "${MYSQL_PORT:-3307}:3306"
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      # localhost(소켓)로 확인하면 첫 기동 때 초기화용 임시 서버에도 성공해 앱이 너무 일찍 뜬다 → TCP로 확인
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 5s
       retries: 20

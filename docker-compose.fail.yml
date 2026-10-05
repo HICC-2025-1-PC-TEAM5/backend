@@ -1,0 +1,8 @@
+# 식품안전나라 장애 주입용 override (측정 전용)
+# FAIL_IP=127.0.0.1    : 연결 거부 (즉시 실패)
+# FAIL_IP=10.255.255.1 : 라우팅되지 않는 주소 (응답 없이 대기, 블랙홀)
+# 사용: FAIL_IP=127.0.0.1 docker compose -f docker-compose.yml -f docker-compose.fail.yml up -d app
+services:
+  app:
+    extra_hosts:
+      - "openapi.foodsafetykorea.go.kr:${FAIL_IP:-127.0.0.1}"
