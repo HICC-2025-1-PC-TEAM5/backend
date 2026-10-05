@@ -12,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,12 @@ public class IngredientService {
     RefrigeratorIngredientRepository refrigeratorIngredientRepository;
     IngredientRepository ingredientRepository;
     MemberRepository memberRepository;
+
+    @Value("${clova.ocr.url}")
+    private String clovaOcrUrl;
+
+    @Value("${clova.ocr.secret}")
+    private String clovaOcrSecret;
 
     @Autowired
     public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository) {
@@ -212,8 +219,8 @@ public class IngredientService {
     }
 
     public List<List<String>> sendtoOCRApi(File jpgFile) {
-        String apiURL = "https://nn03butcil.apigw.ntruss.com/custom/v1/44921/08846e81b3a87fd9cc39d4023a75dcff47a6588055793a5f065212e668c94fe6/general";
-        String secretKey = "aG50ckFMUkVTSUhxUXVHSG9waFNvRG9yZ1pDbUpTSU8=";
+        String apiURL = clovaOcrUrl;
+        String secretKey = clovaOcrSecret;
 
 
         try {

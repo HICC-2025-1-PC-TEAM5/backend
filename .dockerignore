@@ -1,0 +1,19 @@
+.gradle
+build
+bin
+out
+.idea
+.vscode
+.git
+
+# 작업 대상이 아닌 파일
+.pptx-build
+outputs
+.docx_qa_original
+*.docx
+*.drawio.png
+
+# 비밀값: 이미지에 넣지 않고 실행 시 마운트/환경변수로 넘긴다
+src/main/resources/application.properties
+secrets
+.env

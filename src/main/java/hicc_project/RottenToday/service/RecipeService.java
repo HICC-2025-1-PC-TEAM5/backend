@@ -12,6 +12,7 @@ import hicc_project.RottenToday.repository.TasteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
@@ -28,6 +29,12 @@ public class RecipeService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
     private final RecipeStepRepository recipeStepRepository;
+
+    @Value("${foodsafety.api.base-url}")
+    private String foodSafetyBaseUrl;
+
+    @Value("${foodsafety.api.key}")
+    private String foodSafetyApiKey;
 
     @Autowired
     public RecipeService(RecipeRepository recipeRepository, TasteRepository tasteRepository, MemberRepository memberRepository, ObjectMapper objectMapper, RecipeStepRepository recipeStepRepository) {
@@ -66,8 +73,7 @@ public class RecipeService {
         String ingredintParam = ingredients.stream()
                 .map(ing -> "RCP_PARTS_DTLS=" + UriUtils.encode(ing, "UTF-8"))
                 .collect(Collectors.joining("&"));
-        String url = "http://openapi.foodsafetykorea.go.kr/api/cd8fddb933aa46f18d93/COOKRCP01/json/1/15/" + ingredintParam;
-        //String url = "http://openapi.foodsafetykorea.go.kr/api/addc15725715465c947d/COOKRCP01/json/1/10/" + ingredintParam;
+        String url = foodSafetyBaseUrl + "/" + foodSafetyApiKey + "/COOKRCP01/json/1/15/" + ingredintParam;
         String json = restTemplate.getForObject(url, String.class);
         try {
             CookRecipeResponse response = objectMapper.readValue(json, CookRecipeResponse.class);
