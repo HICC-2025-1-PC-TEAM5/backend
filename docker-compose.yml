@@ -19,6 +19,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    # 가정 배포 사양: RDS db.t3.micro (2 vCPU, 1GiB) — D-009
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
 
   app:
     build: .
@@ -37,6 +43,12 @@ services:
       - ./secrets:/app/secrets:ro
     ports:
       - "${APP_PORT:-8080}:8080"
+    # 가정 배포 사양: EC2 t3.micro (2 vCPU, 1GiB) — D-009
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
 
 volumes:
   mysql-data:
