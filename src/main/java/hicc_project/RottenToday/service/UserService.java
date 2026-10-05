@@ -148,7 +148,7 @@ public class UserService {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다"));
         Ingredient ingredient = ingredientRepository.findById(request.getIngredientId()).orElseThrow(() -> new EntityNotFoundException("해당 재료를 찾을 수 없습니다"));
         Allergy allergy = new Allergy(member, ingredient);
-        if (allergyRepository.findByIngredientId(request.getIngredientId()).isPresent()) {
+        if (allergyRepository.existsByMemberIdAndIngredientId(userId, request.getIngredientId())) {
             throw new DuplicateEntityException("이미 알러지 등록한 항목입니다.");
         }
         allergyRepository.save(allergy);
