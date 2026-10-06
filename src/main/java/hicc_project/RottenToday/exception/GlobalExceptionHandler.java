@@ -11,6 +11,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 // 응답 형식과 500 메시지 정책은 D-011
 @Slf4j
@@ -33,6 +34,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         return error(HttpStatus.BAD_REQUEST, "요청 본문 형식이 올바르지 않습니다.");
+    }
+
+    // 경로 변수·쿼리 파라미터 타입 변환 실패 (예: /recipes/undefined). 변환 오류 메시지는 내부 정보라 고정 문구 (B19)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        return error(HttpStatus.BAD_REQUEST, "요청 값의 형식이 올바르지 않습니다.");
     }
 
     @ExceptionHandler(ForbiddenException.class)

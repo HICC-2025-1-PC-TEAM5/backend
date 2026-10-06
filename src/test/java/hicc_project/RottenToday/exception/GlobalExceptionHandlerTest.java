@@ -38,6 +38,7 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/t/runtime") void runtime() { throw new RuntimeException(INTERNAL_DETAIL); }
         @GetMapping("/t/status") void status() { throw new ResponseStatusException(HttpStatus.FORBIDDEN, "금지"); }
         @PostMapping("/t/body") void body(@RequestBody List<String> body) { }
+        @GetMapping("/t/typed/{id}") void typed(@PathVariable Long id) { }
     }
 
     private MockMvc mvc;
@@ -90,6 +91,16 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.message").value("요청 본문 형식이 올바르지 않습니다."))
                 .andReturn().getResponse().getContentAsString();
         assertThat(body).doesNotContain("JSON parse error");
+    }
+
+    @Test
+    void 경로_변수_타입이_맞지_않으면_400이고_변환_오류가_노출되지_않는다() throws Exception { // B19
+        String body = mvc.perform(get("/t/typed/undefined"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("요청 값의 형식이 올바르지 않습니다."))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(body).doesNotContain("java.lang");
     }
 
     @Test
