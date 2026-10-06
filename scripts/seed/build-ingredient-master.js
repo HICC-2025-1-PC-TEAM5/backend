@@ -38,6 +38,41 @@ const CATEGORY_MAP = {
   '기타': CATEGORY.ETC,
 };
 
+// 일반적으로 쓰는 이름으로 바꾼다 (D-014). 같은 이름이 되면 한 재료로 합친다
+// - 괄호 속 이름이 더 흔한 경우, 크기·등급 구분, '참~'·'살~' 같은 정식 명칭
+const ALIAS = {
+  // 곡류
+  '멥쌀': '쌀', '멥쌀밥': '쌀밥', '멥쌀 국수': '쌀국수', '맵쌀 국수': '쌀국수',
+  // 채소·버섯
+  '파': '대파', '큰느타리버섯(새송이버섯)': '새송이버섯', '꽃양배추(콜리플라워)': '콜리플라워',
+  '고려엉겅퀴(곤드레)': '곤드레', '고수(향채)': '고수', '산마늘(명이나물)': '명이나물',
+  '퉁퉁마디(함초)': '함초', '퉁퉁마디환(함초환)': '함초환', '여주(고야)': '여주', '염교(락교)': '락교',
+  '파프리카(착색단고추)': '파프리카', '무 절임(치킨무)': '치킨무', '방울다다기양배추': '방울양배추',
+  '배암차즈기(곰보배추)': '곰보배추', '신선초(명일엽)': '신선초', '비타민채(다채)': '비타민채',
+  '능이버섯(향버섯)': '능이버섯', '토스카노(잎브로콜리)': '잎브로콜리', '열대비름(아마란스)': '열대비름',
+  '참죽나물(가죽나물)': '참죽나물', '엄나무(개두릅)': '엄나무순', '수리취(떡취)': '수리취',
+  // 과일
+  '자몽(그레이프프루트)': '자몽', '백향과(패션프루트)': '패션프루트', '백향과(패션프루트) 주스': '패션프루트 주스',
+  '오렴자(카람볼라)': '스타프루트',
+  // 두류·견과
+  '콩(대두)': '콩', '렌즈콩(렌틸콩)': '렌틸콩', '개암(헤이즐넛)': '헤이즐넛', '쥐눈이콩(검정소립콩)': '쥐눈이콩',
+  '피스타치오넛': '피스타치오', '삼씨(대마씨)': '대마씨', '작두(도두)': '작두콩', '완두': '완두콩', '잠두': '잠두콩',
+  // 어패류·해조류
+  '넙치(광어)': '광어', '조피볼락(우럭)': '우럭', '참담치(홍합)': '홍합', '멍게(우렁쉥이)': '멍게',
+  '큰구슬우렁이(골뱅이)': '골뱅이', '주름미더덕(오만둥이)': '오만둥이', '토굴(벗굴)': '벗굴',
+  '접시조개(비단조개)': '비단조개', '향어(이스라엘잉어)': '향어', '돌김(둥근돌김)': '돌김',
+  '북방전복(참전복)': '전복', '관절매물고둥(보라골뱅이)': '보라골뱅이', '콩깍지고둥(털골뱅이)': '털골뱅이',
+  '긴고둥(긴뿔고둥)': '긴고둥', '대두어(흑연)': '대두어',
+  '갈치(24cm미만)': '갈치', '갈치(24cm이상)': '갈치',
+  '기름가자미(20cm미만)': '기름가자미', '기름가자미(21-24cm)': '기름가자미', '기름가자미(25-29cm)': '기름가자미',
+  '기름가자미(25cm미만)': '기름가자미', '기름가자미(30cm이상)': '기름가자미', '전갱이(치어)': '전갱이',
+  '살오징어': '오징어', '참굴': '굴', '참문어': '문어', '대문어': '문어', '참가리비': '가리비', '참꼬막': '꼬막',
+  '참김': '김', '참다시마': '다시마', '참홍어': '홍어', '참조기': '조기', '참소라': '소라', '참갑오징어': '갑오징어',
+  '참꼴뚜기': '꼴뚜기', '참게': '민물게', '대서양연어': '연어', '먹장어': '곰장어', '붕장어': '아나고',
+  // 기름·조미료·기타
+  '쌀겨기름(미강유)': '미강유', '레몬그라스(시트로넬라)': '레몬그라스', '라벤다': '라벤더', '팽창제': '베이킹파우더',
+};
+
 // CSV에 없는 기본 재료 (기본 재료 추천 GET /fridge/necessary가 이름으로 찾는다)
 const EXTRA = [
   { name: '쌀', category: CATEGORY.GRAIN },
@@ -85,12 +120,18 @@ const col = (name) => {
 const rows = body.filter((r) => r.length === header.length);
 
 // 이름: 대표식품명. '~류'(장어류 등)는 식품중분류명으로 푼다 (D-013)
-function nameOf(r) {
+function rawNameOf(r) {
   const rep = r[col('대표식품명')].trim();
   const mid = r[col('식품중분류명')].trim();
   if (rep.endsWith('류') && mid && mid !== '해당없음') return mid;
   return rep;
 }
+const nameOf = (r) => ALIAS[rawNameOf(r)] || rawNameOf(r);
+
+// 별칭이 CSV에 없는 이름을 가리키면(오타 등) 알 수 있게 한다
+const rawNames = new Set(rows.map(rawNameOf));
+const unusedAlias = Object.keys(ALIAS).filter((k) => !rawNames.has(k));
+if (unusedAlias.length) throw new Error(`CSV에 없는 별칭: ${unusedAlias.join(', ')}`);
 
 const groups = new Map();
 for (const r of rows) {
@@ -147,6 +188,18 @@ out.push(');');
 out.push('');
 out.push(`INSERT INTO ingredient_seed (${cols.join(', ')}) VALUES`);
 out.push(values.map((v) => '  ' + v).join(',\n') + ';');
+out.push('');
+out.push('-- 0) 이전 seed로 들어간 옛 이름 정리 (D-014)');
+out.push('--    새 이름이 없으면 이름만 바꾸고(id 유지 → 알레르기·냉장고 연결 유지),');
+out.push('--    새 이름이 이미 있으면 옛 행은 어디서도 참조하지 않을 때만 지운다');
+for (const [oldName, newName] of Object.entries(ALIAS)) {
+  const o = sqlText(oldName), n = sqlText(newName);
+  out.push(`UPDATE ingredient o LEFT JOIN ingredient n ON n.name = ${n} SET o.name = ${n} WHERE o.name = ${o} AND n.id IS NULL;`);
+  out.push(`DELETE o FROM ingredient o JOIN ingredient n ON n.name = ${n} AND n.id <> o.id`
+    + ' LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id'
+    + ' LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id'
+    + ` WHERE o.name = ${o} AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;`);
+}
 out.push('');
 out.push('-- 1) 없는 이름만 추가');
 out.push(`INSERT INTO ingredient (${cols.join(', ')})`);
