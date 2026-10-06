@@ -15,9 +15,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -29,6 +33,7 @@ class AuthControllerCallbackTest {
 
     private static final String TOKEN_URI = "https://oauth2.googleapis.com/token";
     private static final String USERINFO_URI = "https://www.googleapis.com/userinfo/v2/me";
+    private static final String REDIRECT_URI = "https://api.cookit.example/api/v2/oauth2/google/callback";
 
     private MockRestServiceServer server;
     private JwtService jwtService;
@@ -46,6 +51,7 @@ class AuthControllerCallbackTest {
         ReflectionTestUtils.setField(controller, "googleClientId", "client-id");
         ReflectionTestUtils.setField(controller, "googleClientSecret", "client-secret");
         ReflectionTestUtils.setField(controller, "frontendMainUrl", "http://localhost:5173");
+        ReflectionTestUtils.setField(controller, "googleRedirectUri", REDIRECT_URI);
         session = new MockHttpSession();
         session.setAttribute("OAUTH2_STATE", "state-1");
 
@@ -61,6 +67,32 @@ class AuthControllerCallbackTest {
                 .andRespond(withSuccess("{\"access_token\":\"g-token\"}", MediaType.APPLICATION_JSON));
         server.expect(requestTo(USERINFO_URI)).andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(userinfoJson, MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void 구글_인증_요청의_redirect_uri는_설정값을_쓴다() { // C7
+        ResponseEntity<Void> res = controller.redirectToGoogle(new MockHttpSession());
+
+        String location = res.getHeaders().getLocation().toString();
+        assertThat(location).contains("redirect_uri=" + URLEncoder.encode(REDIRECT_URI, StandardCharsets.UTF_8))
+                .doesNotContain("localhost:8080");
+    }
+
+    @Test
+    void 코드_교환에도_설정한_redirect_uri를_보내고_로그인_후_URL에_토큰이_없다() { // C7, B17
+        server.expect(requestTo(TOKEN_URI)).andExpect(method(HttpMethod.POST))
+                .andExpect(content().string(containsString("redirect_uri=" + URLEncoder.encode(REDIRECT_URI, StandardCharsets.UTF_8))))
+                .andRespond(withSuccess("{\"access_token\":\"g-token\"}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(USERINFO_URI)).andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\"id\":\"g-1\",\"email\":\"a@example.com\"}", MediaType.APPLICATION_JSON));
+
+        ResponseEntity<?> res = controller.handleGoogleCallback("code", "state-1", null, null, session);
+
+        server.verify();
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(res.getHeaders().getLocation().toString())
+                .isEqualTo("http://localhost:5173?from=oauth")
+                .doesNotContain("access");
     }
 
     @Test

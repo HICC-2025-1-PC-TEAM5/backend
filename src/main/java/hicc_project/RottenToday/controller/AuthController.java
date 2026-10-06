@@ -37,12 +37,15 @@ public class AuthController {
     @Value("${app.frontend.main-url:http://localhost:5173}")
     private String frontendMainUrl;
 
+    // 구글 콘솔의 승인된 리디렉션 URI와 같아야 한다. 배포 환경에서는 설정 파일로 바꾼다 (C7)
+    @Value("${app.oauth.google.redirect-uri:http://localhost:8080/api/v2/oauth2/google/callback}")
+    private String googleRedirectUri;
+
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
     private final MemberService memberService;
 
     private static final ObjectMapper OM = new ObjectMapper();
-    private static final String REDIRECT_URI = "http://localhost:8080/api/v2/oauth2/google/callback";
 
     @GetMapping("/google")
     public ResponseEntity<Void> redirectToGoogle(HttpSession session) {
@@ -52,7 +55,7 @@ public class AuthController {
         String authUrl =
                 "https://accounts.google.com/o/oauth2/v2/auth"
                         + "?client_id=" + URLEncoder.encode(googleClientId, StandardCharsets.UTF_8)
-                        + "&redirect_uri=" + URLEncoder.encode(REDIRECT_URI, StandardCharsets.UTF_8)
+                        + "&redirect_uri=" + URLEncoder.encode(googleRedirectUri, StandardCharsets.UTF_8)
                         + "&response_type=code"
                         + "&scope=" + URLEncoder.encode("email profile openid", StandardCharsets.UTF_8)
                         + "&access_type=offline"
@@ -98,7 +101,7 @@ public class AuthController {
         form.add("code", code);
         form.add("client_id", googleClientId);
         form.add("client_secret", googleClientSecret);
-        form.add("redirect_uri", REDIRECT_URI);
+        form.add("redirect_uri", googleRedirectUri);
         form.add("grant_type", "authorization_code");
 
         HttpHeaders headers = new HttpHeaders();
@@ -159,9 +162,6 @@ public class AuthController {
             HttpHeaders out = new HttpHeaders();
             out.setCacheControl(CacheControl.noStore());
             out.add("Pragma", "no-cache");
-
-            String redirectUrl = frontendMainUrl + "?access=" + pair.accessToken();
-            out.setLocation(URI.create(redirectUrl));
 
             ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", pair.refreshToken())
                     .httpOnly(true)
