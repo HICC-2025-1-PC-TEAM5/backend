@@ -83,7 +83,8 @@ public class IngredientService {
     }
     @Transactional
     public void updateRefridgeIngredient(Long memberId, RefridgeIngredientRequest request) {
-        Optional<RefrigeratorIngredient> byId = refrigeratorIngredientRepository.findById(request.getRefrigeratorIngredientId());
+        Optional<RefrigeratorIngredient> byId = refrigeratorIngredientRepository.findById(request.getRefrigeratorIngredientId())
+                .filter(r -> isOwnedBy(r, memberId)); // 남의 재료는 없는 것으로 취급 (D-012)
         if (byId.isPresent()) {
             RefrigeratorIngredient refrigeratorIngredient = byId.get();
             if (request.getQuantity() == 0){
@@ -107,12 +108,16 @@ public class IngredientService {
     }
 
     public void deleteIngredient(Long memberId, Long refridgeId) {
-        List<RefrigeratorIngredient> findIngredients = refrigeratorIngredientRepository.findByMemberId(memberId);
-        for (RefrigeratorIngredient refrigeratorIngredient : findIngredients) {
-            if (refrigeratorIngredient.getId().equals(refridgeId)) {
-                refrigeratorIngredientRepository.delete(refrigeratorIngredient);
-            }
-        }
+        // 본인 냉장고에 없는 id(남의 재료 포함)는 404 (D-012)
+        RefrigeratorIngredient target = refrigeratorIngredientRepository.findByMemberId(memberId).stream()
+                .filter(r -> r.getId().equals(refridgeId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("해당 냉장고 재료 없음"));
+        refrigeratorIngredientRepository.delete(target);
+    }
+
+    private static boolean isOwnedBy(RefrigeratorIngredient item, Long memberId) {
+        return item.getMember() != null && item.getMember().getId().equals(memberId);
     }
 
     private int measureExpireDate(Category category, StorageCondition condition) {
@@ -405,8 +410,9 @@ public class IngredientService {
 
     }
 
-    public RefridgeDto getRefridgeIngredient(Long refrigeratorId) {
-        Optional<RefrigeratorIngredient> byId = refrigeratorIngredientRepository.findById(refrigeratorId);
+    public RefridgeDto getRefridgeIngredient(Long memberId, Long refrigeratorId) {
+        Optional<RefrigeratorIngredient> byId = refrigeratorIngredientRepository.findById(refrigeratorId)
+                .filter(r -> isOwnedBy(r, memberId));
         if (byId.isPresent()) {
             RefrigeratorIngredient refrigeratorIngredient = byId.get();
             return new RefridgeDto(refrigeratorIngredient);

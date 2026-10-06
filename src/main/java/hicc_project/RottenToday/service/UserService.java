@@ -128,7 +128,9 @@ public class UserService {
 
     @Transactional
     public void updateFavorites(Long userId, FavoriteRequestDto requestDto) {
-        History history = historyRepository.findById(requestDto.getHistoryId()).orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
+        History history = historyRepository.findById(requestDto.getHistoryId())
+                .filter(h -> h.getMember() != null && h.getMember().getId().equals(userId)) // 남의 기록은 404 (D-012)
+                .orElseThrow(() -> new EntityNotFoundException("해당 레시피가 존재하지 않습니다."));
         history.setFavorite(requestDto.isType());
 
     }
@@ -154,12 +156,11 @@ public class UserService {
         allergyRepository.save(allergy);
     }
 
-    public void deleteAllergy(Long allergyId) {
-        if (allergyRepository.existsById(allergyId)) {
-            allergyRepository.deleteById(allergyId);
-        } else {
-            throw new EntityNotFoundException("해당 알러지 정보가 존재하지 않습니다.");
-        }
+    public void deleteAllergy(Long userId, Long allergyId) {
+        Allergy allergy = allergyRepository.findById(allergyId)
+                .filter(a -> a.getMember() != null && a.getMember().getId().equals(userId)) // 남의 알레르기는 404 (D-012)
+                .orElseThrow(() -> new EntityNotFoundException("해당 알러지 정보가 존재하지 않습니다."));
+        allergyRepository.delete(allergy);
     }
 
     // 회원 탈퇴 기능 추가

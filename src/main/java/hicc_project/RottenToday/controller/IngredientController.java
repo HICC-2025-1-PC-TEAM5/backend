@@ -57,7 +57,7 @@ public class IngredientController {
     }
     @GetMapping("/api/users/{userId}/fridge/ingredients/{refrigeratorId}")
     public ResponseEntity<RefridgeDto> getRefrigeratorIngredient(@PathVariable Long userId, @PathVariable Long refrigeratorId) {
-        RefridgeDto refridgeIngredient = ingredientService.getRefridgeIngredient(refrigeratorId);
+        RefridgeDto refridgeIngredient = ingredientService.getRefridgeIngredient(userId, refrigeratorId);
         return ResponseEntity.ok(refridgeIngredient);
 
     }

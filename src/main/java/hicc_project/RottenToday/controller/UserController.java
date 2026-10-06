@@ -74,7 +74,7 @@ public class UserController {
 
     @DeleteMapping("/api/users/{userId}/preference/allergy/{allergyId}")
     public ResponseEntity<String> deleteAllergy(@PathVariable Long userId, @PathVariable Long allergyId) {
-        userService.deleteAllergy(allergyId);
+        userService.deleteAllergy(userId, allergyId);
         return ResponseEntity.ok("ok");
     }
 

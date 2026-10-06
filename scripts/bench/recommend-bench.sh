@@ -5,6 +5,7 @@ set -uo pipefail
 
 BASE="${BASE:-http://localhost:18080}"
 USER_ID="${USER_ID:?USER_ID 필요}"
+TOKEN="${TOKEN:-$(bash scripts/bench/dev-token.sh "$USER_ID")}"   # D-012: /api/users/** 로그인 필수
 N="${N:-30}"; WARMUP="${WARMUP:-5}"
 LABEL="${LABEL:-before}"
 OUT="${OUT:-../docs/measurements/raw/$(date +%Y%m%d-%H%M)-$LABEL}"
@@ -20,7 +21,8 @@ for s in "${!BODY[@]}"; do printf '%s' "${BODY[$s]}" > "$OUT/$s.body.json"; done
 
 call() {
   curl -s -o "$OUT/last.json" -m 150 -w '%{http_code}\t%{time_total}\n' \
-    -X POST -H 'Content-Type: application/json; charset=utf-8' --data-binary "@$OUT/$1.body.json" \
+    -X POST -H 'Content-Type: application/json; charset=utf-8' -H "Authorization: Bearer $TOKEN" \
+    --data-binary "@$OUT/$1.body.json" \
     "$BASE/api/users/$USER_ID/recipes"
 }
 

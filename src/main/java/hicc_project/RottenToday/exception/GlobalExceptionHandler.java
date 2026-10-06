@@ -35,6 +35,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "요청 본문 형식이 올바르지 않습니다.");
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex) {
+        return error(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
