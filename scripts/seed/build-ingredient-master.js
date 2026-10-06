@@ -84,6 +84,20 @@ const EXTRA = [
   { name: '쌀', category: CATEGORY.GRAIN },
   { name: '고추장', category: CATEGORY.CONDIMENT },
   { name: '식용유', category: CATEGORY.OIL },
+  // 레시피에 자주 나오지만 원재료성식품 CSV에 없는 재료 104개 (D-027, 레시피 1,156건의 미연결 상위 120개 중 별칭·중간 재료 제외)
+  // 카테고리는 Claude 서브에이전트 1차 분류(기존 마스터 선례 우선). 근거: docs/reviews/2026-10-07-master-additions.md
+  ...['홍고추', '애호박', '단호박', '깻잎', '청양고추', '방울토마토', '어린잎채소', '쪽파', '양상추', '실파', '건표고버섯', '새싹채소', '적양배추', '영양부추', '알배추', '적양파', '건고추', '래디시', '식용꽃', '주키니호박'].map((name) => ({ name, category: CATEGORY.VEGETABLE })),
+  ...['레몬즙', '건포도', '오렌지주스', '홍시'].map((name) => ({ name, category: CATEGORY.FRUIT })),
+  ...['밀가루', '찹쌀가루', '빵가루', '현미', '강력분', '박력분', '튀김가루', '떡볶이떡', '스파게티', '라이스페이퍼', '실곤약', '쌀가루', '식빵'].map((name) => ({ name, category: CATEGORY.GRAIN })),
+  ...['닭가슴살', '삼겹살', '돼지등심', '닭다리살', '소고기등심'].map((name) => ({ name, category: CATEGORY.MEAT })),
+  ...['건새우', '가쓰오부시', '관자'].map((name) => ({ name, category: CATEGORY.SEAFOOD })),
+  ...['달걀흰자', '달걀노른자'].map((name) => ({ name, category: CATEGORY.EGG })),
+  ...['버터', '생크림', '요거트', '모짜렐라치즈', '파마산치즈', '치즈', '크림치즈'].map((name) => ({ name, category: CATEGORY.DAIRY })),
+  ...['두부', '검은깨', '들깻가루', '두유', '견과류', '아몬드가루', '연두부', '콩가루', '순두부', '검은콩', '땅콩버터'].map((name) => ({ name, category: CATEGORY.BEANS })),
+  ...['고추기름'].map((name) => ({ name, category: CATEGORY.OIL })),
+  ...['식초', '올리고당', '매실청', '청주', '맛술', '마요네즈', '유자청', '카레가루', '맛간장', '케첩', '물엿', '국간장', '발사믹식초', '생강청', '굴소스', '머스터드', '함초소금', '화이트와인', '강황가루', '겨자가루', '레드와인', '미소된장', '사과식초', '알룰로스', '바질가루', '새우젓', '진간장', '백년초가루'].map((name) => ({ name, category: CATEGORY.CONDIMENT })),
+  ...['김치', '베이컨', '토마토페이스트', '라면', '토마토소스', '게맛살', '백김치', '홀토마토'].map((name) => ({ name, category: CATEGORY.PROCESSED })),
+  ...['드라이이스트', '판젤라틴'].map((name) => ({ name, category: CATEGORY.ETC })),
 ];
 
 const NUTRIENTS = [
@@ -182,7 +196,7 @@ const cols = ['name', 'category', ...NUTRIENTS.map(([c]) => c)];
 const out = [];
 out.push('-- 재료 마스터 seed (D-013). 이 파일은 scripts/seed/build-ingredient-master.js가 생성한다. 직접 고치지 않는다');
 out.push('-- 출처: 공공데이터포털 전국통합식품영양성분정보_원재료성식품_표준데이터 (CSV ' + rows.length + '행 → 재료 ' + groups.size + '개)');
-out.push('-- 추가: CSV에 없는 기본 재료 ' + EXTRA.filter((e) => !groups.has(e.name)).map((e) => e.name).join(', ') + ' (영양성분 없음)');
+out.push('-- 추가: CSV에 없는 기본 재료 ' + EXTRA.filter((e) => !groups.has(e.name)).length + '개 (영양성분 없음, D-013·D-027): ' + EXTRA.filter((e) => !groups.has(e.name)).map((e) => e.name).join(', '));
 out.push('-- 앱을 한 번 기동해 ingredient 테이블과 영양성분 컬럼이 생긴 뒤 실행한다 (ddl-auto=update)');
 out.push('-- 여러 번 실행해도 된다: 없는 이름만 추가하고, 이미 있는 행은 영양성분이 비어 있을 때만 채운다');
 out.push('');
