@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -26,12 +27,12 @@ public class UserController {
     @GetMapping("/api/users/me")
     public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal Member member) {
         if (member == null) return ResponseEntity.status(401).body(Map.of("error","Unauthorized"));
-        var body = Map.of(
-                "id", member.getId(),
-                "email", member.getEmail(),
-                "name", member.getName(),
-                "picture", member.getPicture()
-        );
+        // name·picture는 구글이 주지 않으면 null이다 (Map.of는 null 값을 허용하지 않음)
+        Map<String, Object> body = new HashMap<>();
+        body.put("id", member.getId());
+        body.put("email", member.getEmail());
+        body.put("name", member.getName());
+        body.put("picture", member.getPicture());
         return ResponseEntity.ok(Map.of("data", body));
     }
 
