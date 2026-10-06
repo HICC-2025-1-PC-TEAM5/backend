@@ -7,6 +7,7 @@ import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.RecipeStepRepository;
 import hicc_project.RottenToday.repository.TasteRepository;
+import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +51,7 @@ class RecipeServiceTest {
         // Spring Boot 기본 설정과 같은 ObjectMapper (모르는 필드 무시)
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
         recipeService = new RecipeService(recipeRepository, mock(TasteRepository.class),
-                mock(MemberRepository.class), objectMapper, mock(RecipeStepRepository.class));
+                mock(MemberRepository.class), objectMapper, mock(RecipeStepRepository.class), new RecipeIngredientParser(java.util.Map.of()));
         ReflectionTestUtils.setField(recipeService, "foodSafetyBaseUrl", "http://openapi.foodsafetykorea.go.kr/api");
         ReflectionTestUtils.setField(recipeService, "foodSafetyApiKey", API_KEY);
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(recipeService, "restTemplate");

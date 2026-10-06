@@ -1,5 +1,8 @@
 package hicc_project.RottenToday.service.recipe;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +26,7 @@ import java.util.regex.Pattern;
  * 냉장고 재료 이름도 추천할 때 같은 함수로 정규화해야 서로 맞는다.
  * 외부 상태가 없는 순수 함수다. 동의어 사전은 {@code recipe/ingredient-aliases.csv}에서 읽는다.
  */
+@Component
 public class RecipeIngredientParser {
 
     public record ParsedIngredient(String name, String rawText) {}
@@ -66,6 +70,7 @@ public class RecipeIngredientParser {
     // 기준 이름 → 둘 다 흔히 쓰는 별칭 (예: 달걀 → [계란])
     private final Map<String, List<String>> commonByCanonical = new HashMap<>();
 
+    @Autowired // 빈으로는 리소스 사전을 읽는 기본 생성자를 쓴다
     public RecipeIngredientParser() {
         this(loadEntries());
     }

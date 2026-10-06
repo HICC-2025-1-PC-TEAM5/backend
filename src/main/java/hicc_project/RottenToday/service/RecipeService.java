@@ -10,6 +10,7 @@ import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.RecipeStepRepository;
 import hicc_project.RottenToday.repository.TasteRepository;
+import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,10 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,6 +36,7 @@ public class RecipeService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
     private final RecipeStepRepository recipeStepRepository;
+    private final RecipeIngredientParser ingredientParser; // 알레르기 재료의 동의어를 찾는다 (B22)
 
     @Value("${foodsafety.api.base-url}")
     private String foodSafetyBaseUrl;
@@ -40,12 +45,13 @@ public class RecipeService {
     private String foodSafetyApiKey;
 
     @Autowired
-    public RecipeService(RecipeRepository recipeRepository, TasteRepository tasteRepository, MemberRepository memberRepository, ObjectMapper objectMapper, RecipeStepRepository recipeStepRepository) {
+    public RecipeService(RecipeRepository recipeRepository, TasteRepository tasteRepository, MemberRepository memberRepository, ObjectMapper objectMapper, RecipeStepRepository recipeStepRepository, RecipeIngredientParser ingredientParser) {
         this.recipeRepository = recipeRepository;
         this.tasteRepository = tasteRepository;
         this.memberRepository = memberRepository;
         this.objectMapper = objectMapper;
         this.recipeStepRepository = recipeStepRepository;
+        this.ingredientParser = ingredientParser;
     }
 
     public RecipeDetailResponse getRecipeDetail(Long recipeId) {
@@ -118,23 +124,24 @@ public class RecipeService {
                     .collect(Collectors.toList());
 
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 없음"));
-            List<Allergy> allergies = member.getAllergies();
             List<Taste> tastes = member.getTastes();
+            // 알레르기 재료의 모든 이름(동의어 포함, 공백 제외). 예: 달걀 → 달걀, 계란, 삶은달걀 … (B22)
+            Set<String> allergyNames = new LinkedHashSet<>();
+            for (Allergy allergy : member.getAllergies()) {
+                for (String name : ingredientParser.namesOf(allergy.getIngredient().getName())) {
+                    allergyNames.add(name.replaceAll("\\s+", ""));
+                }
+            }
 
-
+            // 알레르기·싫어요에 걸린 레시피는 저장하지 않고 응답에서도 뺀다 (B2)
+            List<RecipeResponseDto> result = new ArrayList<>();
             for (RecipeResponseDto dto : recipeList) {
                 Recipe recipe = new Recipe(dto);
                 int favorite = 0;  //좋아함 1 안좋아함 -1 표시x는 0
-                boolean allergyType = false;
 
-                for (Allergy allergy : allergies) {   //알러지 재료 포함되면 추천 x
-                    String ingredient = allergy.getIngredient().getName();
-                    if (recipe.getIngredients().contains(ingredient)) {
-                        allergyType = true;
-                        break;
-                    };
-                }
-                if (allergyType) {
+                // 원문에 알레르기 재료 이름이 하나라도 들어 있으면 제외한다. 오탐은 허용하고 누락은 막는다 (레시피 계획 결정 5)
+                String partsText = recipe.getIngredients() == null ? "" : recipe.getIngredients().replaceAll("\\s+", "");
+                if (allergyNames.stream().anyMatch(partsText::contains)) {
                     continue;
                 }
 
@@ -159,13 +166,14 @@ public class RecipeService {
                 Recipe save = recipeRepository.save(recipe);
                 dto.setId(save.getId());
                 saved++;
+                result.add(dto);
             }
-            log.info("recipe : {}", recipeList);
+            log.info("recipe : {}", result);
             // 측정용 (D-010). URL에 키가 있으므로 URL은 남기지 않는다
             long serviceMs = (System.nanoTime() - serviceStart) / 1_000_000;
             log.info("recipe.metrics externalCalls=1 externalMs={} serviceMs={} returned={} saved={}",
-                    externalMs, serviceMs, recipeList.size(), saved);
-            return recipeList;
+                    externalMs, serviceMs, result.size(), saved);
+            return result;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("레시피 파싱 실패", e);
         }
