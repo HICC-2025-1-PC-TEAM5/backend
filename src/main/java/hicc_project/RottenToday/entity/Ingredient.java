@@ -16,6 +16,9 @@ public class Ingredient {
     @Column(length = 1000)
     private String imageUrl;
 
+    @Embedded
+    private Nutrition nutrition;
+
 
 
 }
