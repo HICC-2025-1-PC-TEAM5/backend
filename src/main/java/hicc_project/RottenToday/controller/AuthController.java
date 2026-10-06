@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -73,8 +74,9 @@ public class AuthController {
             HttpSession session
     ) {
         if (error != null) {
+            // error_description은 없을 수 있다 (Map.of는 null 값을 허용하지 않음)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", error, "description", errorDesc));
+                    .body(Map.of("error", error, "description", errorDesc != null ? errorDesc : ""));
         }
         if (code == null || code.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "No authorization code"));
@@ -127,23 +129,30 @@ public class AuthController {
 
 
             // 3) 멤버 upsert → tokenVersion 읽기
-            String externalId = String.valueOf(userInfo.getOrDefault("id", "unknown"));
+            Object rawId      = userInfo.get("id");
             String email      = (String) userInfo.get("email");
             String name       = (String) userInfo.get("name");
             String picture    = (String) userInfo.get("picture");
 
+            // id·email은 회원 식별에 필요하다 (email은 NOT NULL UNIQUE). 없으면 회원을 만들지 않는다 (B9)
+            if (rawId == null || String.valueOf(rawId).isBlank() || email == null || email.isBlank()) {
+                log.warn("구글 userinfo 필수 값 누락: id={}, email={}", rawId != null, email != null);
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                        .body(Map.of("error", "incomplete_userinfo", "message", "구글 계정 정보를 가져오지 못했습니다."));
+            }
+            String externalId = String.valueOf(rawId);
+
             var member = memberService.upsertGoogleUser(externalId, email, name, picture);
             long tver = member.getTokenVersion();
 
-            // 4) 우리 JWT 발급 (subject=memberId, tver 포함)
+            // 4) 우리 JWT 발급 (subject=memberId, tver 포함). name은 없을 수 있어 값이 있을 때만 넣는다
             String subject = String.valueOf(member.getId());
-            Map<String, Object> claims = Map.of(
-                    "provider", "google",
-                    "email", email,
-                    "name",  name,
-                    "mid",   member.getId(),
-                    "tver",  tver
-            );
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("provider", "google");
+            claims.put("email", email);
+            if (name != null) claims.put("name", name);
+            claims.put("mid", member.getId());
+            claims.put("tver", tver);
             var pair = jwtService.issue(subject, claims);
 
             // 5) 쿠키 세팅: refresh_token 유지, refreshToken(legacy) 제거
