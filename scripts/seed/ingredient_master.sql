@@ -88,12 +88,11 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('고사리', 0, '100g', 22, 3.8, 2.9, 0.17, 0.2, 3.4, 0, 'R106-016000001-0000'),
   ('고수', 0, '100g', 33, 5.6, 4.6, 0.2, NULL, NULL, 5, 'R106-017000001-0000'),
   ('고추', 0, '100g', 41, 6.9, 2.3, 1.3, NULL, NULL, 11, 'R106-018038101-0000'),
-  ('고추냉이', 0, '100g', 27, 5.35, 1.93, 0.41, 1.06, 4.2, 15, 'R106-021002801-0000'),
   ('고춧가루', 9, '100g', 319, 60.62, 13.29, 8.4, 17.45, 37.7, 13, 'R118-007000006-0000'),
   ('고춧잎', 0, '100g', 45, 8.49, 5.07, 0.32, 0, 2.8, 4, 'R106-019007801-0000'),
   ('곤달비', 0, '100g', 32, 5.51, 2.81, 0.64, 1.02, 4.3, 3, 'R106-022000001-0000'),
   ('곤드레', 0, '100g', 32, 3.29, 3.47, 1.38, 0.35, NULL, 0, 'R106-014047801-0000'),
-  ('곤약(구약나물)', 2, '100g', 6, 3.06, 0.12, 0.01, 0, 2.4, 2, 'R102-009020001-0000'),
+  ('곤약', 2, '100g', 6, 3.06, 0.12, 0.01, 0, 2.4, 2, 'R102-009020001-0000'),
   ('골든세이지', 9, '100g', 385, 73.6, 1.6, 9.3, NULL, NULL, 60, 'R118-044000002-0000'),
   ('골뱅이', 4, '100g', 76, 0.3, 17.4, 0.1, 0.3, 0, NULL, 'R211-517014001-1200'),
   ('곰보배추', 0, '100g', 25, 4.5, 1.73, 0.62, 1.44, 2.1, 7, 'R106-229007801-0000'),
@@ -177,6 +176,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('납작파래', 4, '100g', 17, 3.5, 3.3, 0.7, 3, 0.5, NULL, 'R112-853075101-0000'),
   ('납지리', 4, '100g', 86, 0.1, 17.5, 1.2, 0.1, 0, NULL, 'R211-041014001-1205'),
   ('냉이', 0, '100g', 37, 6.74, 3.81, 0.42, 0.77, 4.5, 8, 'R106-033000001-0000'),
+  ('넛맥', 9, '100g', 302, 68.57, 9.66, 4.01, 0, 56.6, 7, 'R118-027060606-0000'),
   ('네동가리', 4, '100g', 82, 0.07, 19.2, 0.1, 0.07, 0, NULL, 'R211-081014001-1200'),
   ('노랑가오리', 4, '100g', 97, 0, 21.6, 0.6, 0, 0, NULL, 'R211-007054001-1198'),
   ('노랑벤자리', 4, '100g', 94, 0.2, 17.3, 2.1, 0.2, 0, NULL, 'R211-139014001-1201'),
@@ -184,7 +184,6 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('노루궁뎅이버섯', 0, '100g', 13, 2.89, 2.57, 0.41, 0.54, 2.5, 2, 'R107-003000001-0000'),
   ('녹두', 7, '100g', 158, 26.66, 11.29, 0.67, 0, 9.8, 2, 'R104-002000046-0000'),
   ('녹두 국수', 7, '100g', 344, 87.5, 0.2, 0.4, 0, 4.1, 14, 'R104-004000002-0000'),
-  ('녹두묵', 7, '100g', 40, 9.81, 0.12, 0.03, 0.02, NULL, 92, 'R104-005000000-0000'),
   ('녹차', 11, '100ml', 1, 0.15, 0.02, 0, 0, 0, 1, 'R115-007030024-0000'),
   ('놀래기', 4, '100g', 107, 0, 19.2, 2.8, 0, 0, NULL, 'R211-047014001-1202'),
   ('농어', 4, '100g', 92, 0, 19.42, 1.09, NULL, NULL, NULL, 'R211-049014001-0004'),
@@ -374,7 +373,6 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('무', 0, '100g', 21, 4.72, 0.77, 0.15, 2.96, 1.1, 13, 'R106-065027601-0000'),
   ('무말랭이', 0, '100g', 49, 10.97, 1.78, 0.25, 3.78, 3.9, 13, 'R106-071007691-0000'),
   ('무순', 0, '100g', 20, 1.82, 1.89, 1.01, 0.67, 1.7, 15, 'R106-066002701-0000'),
-  ('무시래기', 0, '100g', 249, 45.41, 18.46, 5.04, 9.74, 30.5, 100, 'R106-068007802-0000'),
   ('무지개송어', 4, '100g', 166, 0.31, 20.6, 8.28, NULL, NULL, 282, 'R211-181014001-0000'),
   ('무청', 0, '100g', 23, 4.29, 1.84, 0.42, 0.82, 2.9, 45, 'R106-066027801-0000'),
   ('무태뱀장어', 4, '100g', 181, 0.64, 17.53, 11.06, NULL, NULL, 72, 'R211-217054001-0649'),
@@ -389,7 +387,6 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('물메기', 4, '100g', 78, 0.1, 16.4, 0.9, 0.1, 0, NULL, 'R211-113014001-1201'),
   ('물쑥', 0, '100g', 36, 5.6, 5.4, 0.3, NULL, NULL, NULL, 'R106-076000001-0000'),
   ('물치다래', 4, '100g', 168, 0.1, 23.4, 7.3, 0.1, 0, NULL, 'R211-115014001-1202'),
-  ('미강유', 8, '100g', 921, 0.05, 0, 99.95, 0, 0, 0, 'R114-013000000-0000'),
   ('미꾸라지', 4, '100g', 138, 0, 15.88, 7.54, NULL, NULL, 91, 'R211-027033901-0649'),
   ('미꾸리', 4, '100g', 115, 0.52, 14.73, 5.34, NULL, NULL, 34, 'R211-027053901-0649'),
   ('미나리', 0, '100g', 22, 5.15, 0.9, 0.16, 1.43, 3.1, 6, 'R106-077037901-0000'),
@@ -423,14 +420,15 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('반지', 4, '100g', 97, 1.13, 17.16, 2.12, NULL, NULL, NULL, 'R211-125033901-1678'),
   ('밤', 7, '100g', 147, 32.1, 2.94, 0.78, 7.03, 6.1, 1, 'R105-014030001-0000'),
   ('밤버섯', 0, '100g', 17, 3.5, 2.9, 0.9, NULL, NULL, NULL, 'R107-009000001-0000'),
+  ('밥', 2, '100g', 166, 35.29, 3.81, 0.87, 0.53, 2.3, 0, 'R101-013100500-0000'),
   ('방가지똥', 0, '100g', 46, 10.3, 2.5, 0.4, NULL, NULL, 5, 'R106-085000001-0000'),
   ('방게', 4, '100g', 73, 0.9, 11.9, 1.3, NULL, NULL, 134, 'R211-715134001-0000'),
   ('방사무늬김', 4, '100g', 16, 3.61, 3.78, 0.27, NULL, NULL, 93, 'R112-813097301-0002'),
+  ('방아잎', 0, '100g', 55, 11.13, 4.87, 0.46, 1.52, 6.4, 2, 'R106-221007801-0000'),
   ('방어', 4, '100g', 142, 0, 20.99, 5.64, NULL, NULL, NULL, 'R211-127014001-0009'),
   ('방울양배추', 0, '100g', 46, 9.82, 3.75, 0.22, 3.49, 4, 16, 'R106-086000001-0000'),
   ('배', 1, '100g', 46, 12.34, 0.29, 0.04, 5.23, 0.8, 0, 'R108-038100001-0000'),
-  ('배 과즙', 1, '100g', 52, 13, 0.3, 0.5, NULL, NULL, 35, 'R108-039000000-0000'),
-  ('배초향(방아)', 0, '100g', 55, 11.13, 4.87, 0.46, 1.52, 6.4, 2, 'R106-221007801-0000'),
+  ('배즙', 1, '100g', 52, 13, 0.3, 0.5, NULL, NULL, 35, 'R108-039000000-0000'),
   ('배추', 0, '100g', 15, 2.99, 1.46, 0.09, 2.11, 0.8, 7, 'R106-087060001-0000'),
   ('배추우거지', 0, '100g', 18, 3.71, 1.35, 0.14, 1.81, 1.9, 9, 'R106-238000001-0000'),
   ('백모근', 0, '100g', 337, 77, 9, 2, NULL, NULL, 115, 'R106-088007602-0000'),
@@ -582,7 +580,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('수박씨', 7, '100g', 451, 47.2, 19.3, 22.9, NULL, NULL, NULL, 'R105-019000002-0000'),
   ('수세미', 12, '100ml', 4, 0.7, 0.8, NULL, NULL, NULL, 3, 'R120-017005900-0000'),
   ('수수', 2, '100g', 376, 73.19, 12.73, 3.02, 0.66, 11.6, 4, 'R101-027040101-0000'),
-  ('숙주나물', 0, '100g', 13, 2.34, 1.73, 0.05, 0, 1.7, 4, 'R106-112000001-0000'),
+  ('숙주', 0, '100g', 13, 2.34, 1.73, 0.05, 0, 1.7, 4, 'R106-112000001-0000'),
   ('순무', 0, '100g', 21, 4.14, 2.05, 0.17, 0.12, 3, 68, 'R106-113007801-0000'),
   ('순채', 4, '100g', 25, 8.4, 2.5, 0.7, 7.1, 1.3, NULL, 'R112-839015101-1044'),
   ('숭어', 4, '100g', 119, 0.4, 21.7, 1.5, NULL, 0, NULL, 'R211-183034001-0000'),
@@ -590,6 +588,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('스테비아', 0, '100g', 40, 8.71, 2.4, 0.32, 0, 5.4, 1, 'R106-114000001-0000'),
   ('스틸레드연어', 4, '100g', 175, 0, 21.65, 8.88, NULL, NULL, NULL, 'R211-201054001-0000'),
   ('시금치', 0, '100g', 24, 3.76, 3.11, 0.34, 0, 3.1, 16, 'R106-115040001-0000'),
+  ('시래기', 0, '100g', 249, 45.41, 18.46, 5.04, 9.74, 30.5, 100, 'R106-068007802-0000'),
   ('신선초', 0, '100g', 24, 5.66, 1.08, 0.14, 1.95, 2.8, 31, 'R106-116000001-0000'),
   ('실꼬리돔', 4, '100g', 107, 0.1, 19.8, 2.5, 0.1, 0, NULL, 'R211-079314001-1198'),
   ('실붉돔', 4, '100g', 112, 0, 17.8, 2.7, NULL, NULL, NULL, 'R211-079334001-0000'),
@@ -597,7 +596,6 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('싸리버섯', 0, '100g', 20, 5.7, 2.8, 0.6, NULL, NULL, NULL, 'R107-015000001-0000'),
   ('쌀', 2, '100g', 365, 78.09, 6.91, 2.34, 1.41, NULL, 5, 'R101-008470501-0000'),
   ('쌀국수', 2, '100g', 340, 72.6, 9.1, 1.5, NULL, NULL, 1964, 'R101-010000002-0000'),
-  ('쌀밥', 2, '100g', 166, 35.29, 3.81, 0.87, 0.53, 2.3, 0, 'R101-013100500-0000'),
   ('쌈무', 0, '100g', 15, 3.1, 0.54, 0.03, 1.46, 2.3, 400, 'R106-222000020-0000'),
   ('쌈추', 0, '100g', 20, 3, 2.7, 0.3, NULL, NULL, 53, 'R106-117010001-0000'),
   ('쌍동가리', 4, '100g', 101, 0, 20.8, 1.4, 0, 0, NULL, 'R211-185014001-1201'),
@@ -692,6 +690,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('올리브 피클', 1, '100g', 137, 5.34, 1.09, 12.36, 0, NULL, 1625, 'R108-076008300-0000'),
   ('올리브유', 8, '100g', 921, 0, 0, 100, 0, 0, 7, 'R114-017000000-0000'),
   ('올스파이스', 9, '100g', 275, 54.2, 24.2, 2.7, NULL, NULL, 60, 'R118-025050506-0000'),
+  ('와사비', 0, '100g', 27, 5.35, 1.93, 0.41, 1.06, 4.2, 15, 'R106-021002801-0000'),
   ('완두콩', 7, '100g', 114, 19.51, 7.92, 0.44, 0, 8.5, 0, 'R104-008000001-0000'),
   ('왕게', 4, '100g', 67, 0.6, 13.7, 0.7, 0.6, 0, NULL, 'R211-715174001-1221'),
   ('왕연어', 4, '100g', 253, 0.53, 21.9, 18.4, 0, 0, 675, 'R211-201077416-5350'),
@@ -712,14 +711,12 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('울금', 0, '100g', 87, 15.73, 1.79, 2.56, 3.83, 3.1, 11, 'R106-228002501-0000'),
   ('웅어', 4, '100g', 169, 0, 15.9, 10.8, 0, 0, NULL, 'R211-205014001-1202'),
   ('원추리', 0, '100g', 35, 6.48, 3.55, 0.36, 2.51, 2.2, 1, 'R106-156000001-0000'),
-  ('월계수', 9, '100g', 313, 74.97, 7.61, 8.36, NULL, 26.3, 23, 'R118-048007802-0000'),
+  ('월계수잎', 9, '100g', 313, 74.97, 7.61, 8.36, NULL, 26.3, 23, 'R118-048007802-0000'),
   ('위고둥', 4, '100g', 66, 1.1, 11.2, 1.5, 1.1, 0, NULL, 'R211-471374001-1199'),
   ('유령멍게', 4, '100g', 22, 2.46, 1.59, 0.55, NULL, NULL, NULL, 'R211-919074001-1052'),
   ('유자', 1, '100g', 40, 10.28, 0.87, 0.06, 2.24, 5.9, 2, 'R108-078008601-0000'),
   ('유채', 0, '100g', 36, 6, 4.1, 0.4, NULL, 3.7, 12, 'R106-157042801-0000'),
-  ('유채씨기름', 8, '100g', 920, 0.1, 0.02, 99.85, 0, 0, 1, 'R114-018000000-0000'),
   ('육동가리돔', 4, '100g', 103, 0, 18.6, 2.6, 0, 0, NULL, 'R211-079394001-1202'),
-  ('육두구', 9, '100g', 302, 68.57, 9.66, 4.01, 0, 56.6, 7, 'R118-027060606-0000'),
   ('율무', 2, '100g', 377, 70.5, 15.4, 3.2, NULL, NULL, 4, 'R101-034000101-0000'),
   ('율무느타리버섯', 0, '100g', 21, 6.4, 3.6, 0.3, NULL, NULL, 3, 'R107-020000001-0000'),
   ('으깬감자', 2, '100g', 83, 17.57, 1.91, 0.57, 1.48, 1.5, 302, 'R102-005000000-0000'),
@@ -834,6 +831,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('청새리상어', 4, '100g', 101, 0.1, 18.5, 2.4, 0.1, 0, NULL, 'R211-173214001-0000'),
   ('청어', 4, '100g', 113, 0.5, 19.6, 2.4, NULL, 0, NULL, 'R211-235014301-0000'),
   ('청자갈치', 4, '100g', 76, 0, 13.19, 2.17, NULL, NULL, NULL, 'R211-011114001-0008'),
+  ('청포묵', 7, '100g', 40, 9.81, 0.12, 0.03, 0.02, NULL, 92, 'R104-005000000-0000'),
   ('체리', 1, '100g', 67, 16.9, 1.59, 0.06, 6.8, 2.3, 1, 'R108-111000001-0000'),
   ('초밥김', 4, '100g', 168, 40.9, 32.7, 0.8, NULL, NULL, 120, 'R112-813153902-0000'),
   ('초석잠', 0, '100g', 76, 17, 2.3, 0.56, 0.17, 2.7, 1, 'R106-226007601-0000'),
@@ -852,6 +850,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('칠성장어', 4, '100g', 287, 0.3, 21, 18, NULL, NULL, 80, 'R211-217154001-0000'),
   ('칡뿌리', 2, '100g', 137, 32.05, 2.48, 0.1, 3.58, 4.4, 0, 'R102-016000001-0000'),
   ('칡즙', 2, '100g', 21, 4.91, 0.44, 0, 1.51, 0.4, 3, 'R102-019000000-0000'),
+  ('카놀라유', 8, '100g', 920, 0.1, 0.02, 99.85, 0, 0, 1, 'R114-018000000-0000'),
   ('카모마일차', 11, '100ml', 1, 0.2, 0, 0, 0, 0, 1, 'R115-036000024-0000'),
   ('커피', 11, '100ml', 2, 0.48, 0.02, 0.02, 0.01, 0, 0, 'R115-027015426-0000'),
   ('케일', 0, '100g', 22, 4.2, 2, 0.3, NULL, 4.4, 50, 'R106-180050001-0000'),
@@ -940,6 +939,7 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
   ('해파리', 4, '100g', 6, 0.1, 1.3, 0, 0.1, 0, NULL, 'R211-931034001-0000'),
   ('향어', 4, '100g', 175, 0.1, 18.4, 8.7, NULL, NULL, NULL, 'R211-251014001-0000'),
   ('헤이즐넛', 7, '100g', 646, 17.6, 15.03, 62.4, 4.89, 9.4, 0, 'R105-001000058-0000'),
+  ('현미유', 8, '100g', 921, 0.05, 0, 99.95, 0, 0, 0, 'R114-013000000-0000'),
   ('호두', 7, '100g', 713, 11.7, 14.6, 68.8, 2.5, 7.5, 4, 'R105-035000058-0000'),
   ('호두유', 8, '100g', 917, 0.39, 0, 99.57, 0, 0, 0, 'R114-029000000-0000'),
   ('호밀', 2, '100g', 334, 70.7, 15.9, 1.5, NULL, NULL, 2, 'R101-044001801-0000'),
@@ -985,8 +985,8 @@ INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carboh
 --    새 이름이 이미 있으면 옛 행은 어디서도 참조하지 않을 때만 지운다
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '쌀' SET o.name = '쌀' WHERE o.name = '멥쌀' AND n.id IS NULL;
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '쌀' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '멥쌀' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
-UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '쌀밥' SET o.name = '쌀밥' WHERE o.name = '멥쌀밥' AND n.id IS NULL;
-DELETE o FROM ingredient o JOIN ingredient n ON n.name = '쌀밥' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '멥쌀밥' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '밥' SET o.name = '밥' WHERE o.name = '멥쌀밥' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '밥' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '멥쌀밥' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '쌀국수' SET o.name = '쌀국수' WHERE o.name = '멥쌀 국수' AND n.id IS NULL;
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '쌀국수' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '멥쌀 국수' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '쌀국수' SET o.name = '쌀국수' WHERE o.name = '맵쌀 국수' AND n.id IS NULL;
@@ -1141,14 +1141,38 @@ UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '곰장어' SET o.name = 
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '곰장어' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '먹장어' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '아나고' SET o.name = '아나고' WHERE o.name = '붕장어' AND n.id IS NULL;
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '아나고' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '붕장어' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
-UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '미강유' SET o.name = '미강유' WHERE o.name = '쌀겨기름(미강유)' AND n.id IS NULL;
-DELETE o FROM ingredient o JOIN ingredient n ON n.name = '미강유' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '쌀겨기름(미강유)' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '현미유' SET o.name = '현미유' WHERE o.name = '쌀겨기름(미강유)' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '현미유' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '쌀겨기름(미강유)' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '레몬그라스' SET o.name = '레몬그라스' WHERE o.name = '레몬그라스(시트로넬라)' AND n.id IS NULL;
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '레몬그라스' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '레몬그라스(시트로넬라)' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '라벤더' SET o.name = '라벤더' WHERE o.name = '라벤다' AND n.id IS NULL;
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '라벤더' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '라벤다' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '베이킹파우더' SET o.name = '베이킹파우더' WHERE o.name = '팽창제' AND n.id IS NULL;
 DELETE o FROM ingredient o JOIN ingredient n ON n.name = '베이킹파우더' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '팽창제' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '숙주' SET o.name = '숙주' WHERE o.name = '숙주나물' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '숙주' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '숙주나물' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '시래기' SET o.name = '시래기' WHERE o.name = '무시래기' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '시래기' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '무시래기' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '월계수잎' SET o.name = '월계수잎' WHERE o.name = '월계수' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '월계수잎' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '월계수' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '곤약' SET o.name = '곤약' WHERE o.name = '곤약(구약나물)' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '곤약' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '곤약(구약나물)' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '카놀라유' SET o.name = '카놀라유' WHERE o.name = '유채씨기름' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '카놀라유' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '유채씨기름' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '와사비' SET o.name = '와사비' WHERE o.name = '고추냉이' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '와사비' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '고추냉이' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '넛맥' SET o.name = '넛맥' WHERE o.name = '육두구' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '넛맥' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '육두구' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '배즙' SET o.name = '배즙' WHERE o.name = '배 과즙' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '배즙' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '배 과즙' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '청포묵' SET o.name = '청포묵' WHERE o.name = '녹두묵' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '청포묵' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '녹두묵' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '방아잎' SET o.name = '방아잎' WHERE o.name = '배초향(방아)' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '방아잎' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '배초향(방아)' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '밥' SET o.name = '밥' WHERE o.name = '쌀밥' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '밥' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '쌀밥' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
+UPDATE ingredient o LEFT JOIN ingredient n ON n.name = '현미유' SET o.name = '현미유' WHERE o.name = '미강유' AND n.id IS NULL;
+DELETE o FROM ingredient o JOIN ingredient n ON n.name = '현미유' AND n.id <> o.id LEFT JOIN allergy a ON a.ingredient_id = o.id LEFT JOIN refrigerator_ingredient r ON r.ingredient_id = o.id LEFT JOIN recipe_ingredient ri ON ri.ingredient_id = o.id WHERE o.name = '미강유' AND a.id IS NULL AND r.id IS NULL AND ri.id IS NULL;
 
 -- 1) 없는 이름만 추가
 INSERT INTO ingredient (name, category, nutrient_basis, energy_kcal, carbohydrate_g, protein_g, fat_g, sugar_g, dietary_fiber_g, sodium_mg, source_food_code)

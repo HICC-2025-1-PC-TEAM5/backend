@@ -42,7 +42,7 @@ const CATEGORY_MAP = {
 // - 괄호 속 이름이 더 흔한 경우, 크기·등급 구분, '참~'·'살~' 같은 정식 명칭
 const ALIAS = {
   // 곡류
-  '멥쌀': '쌀', '멥쌀밥': '쌀밥', '멥쌀 국수': '쌀국수', '맵쌀 국수': '쌀국수',
+  '멥쌀': '쌀', '멥쌀밥': '밥', '멥쌀 국수': '쌀국수', '맵쌀 국수': '쌀국수',
   // 채소·버섯
   '파': '대파', '큰느타리버섯(새송이버섯)': '새송이버섯', '꽃양배추(콜리플라워)': '콜리플라워',
   '고려엉겅퀴(곤드레)': '곤드레', '고수(향채)': '고수', '산마늘(명이나물)': '명이나물',
@@ -70,9 +70,15 @@ const ALIAS = {
   '참김': '김', '참다시마': '다시마', '참홍어': '홍어', '참조기': '조기', '참소라': '소라', '참갑오징어': '갑오징어',
   '참꼴뚜기': '꼴뚜기', '참게': '민물게', '대서양연어': '연어', '먹장어': '곰장어', '붕장어': '아나고',
   // 기름·조미료·기타
-  '쌀겨기름(미강유)': '미강유', '레몬그라스(시트로넬라)': '레몬그라스', '라벤다': '라벤더', '팽창제': '베이킹파우더',
+  '쌀겨기름(미강유)': '현미유', '레몬그라스(시트로넬라)': '레몬그라스', '라벤다': '라벤더', '팽창제': '베이킹파우더',
+  // 레시피 재료 이름과 맞춘 일반적인 이름 (레시피 계획 Phase 1, D-025). 레시피 쪽 동의어는 src/main/resources/recipe/ingredient-aliases.csv
+  '숙주나물': '숙주', '무시래기': '시래기', '월계수': '월계수잎', '곤약(구약나물)': '곤약', '유채씨기름': '카놀라유',
+  '고추냉이': '와사비', '육두구': '넛맥', '배 과즙': '배즙', '녹두묵': '청포묵', '배초향(방아)': '방아잎',
 };
 
+
+// 이전 seed가 ALIAS로 이미 바꿔 넣은 이름을 다시 바꾼다 (D-025). CSV 원래 이름이 아니라서 ALIAS에 둘 수 없다
+const PRIOR_RENAMES = { '쌀밥': '밥', '미강유': '현미유' };
 // CSV에 없는 기본 재료 (기본 재료 추천 GET /fridge/necessary가 이름으로 찾는다)
 const EXTRA = [
   { name: '쌀', category: CATEGORY.GRAIN },
@@ -192,7 +198,7 @@ out.push('');
 out.push('-- 0) 이전 seed로 들어간 옛 이름 정리 (D-014)');
 out.push('--    새 이름이 없으면 이름만 바꾸고(id 유지 → 알레르기·냉장고 연결 유지),');
 out.push('--    새 이름이 이미 있으면 옛 행은 어디서도 참조하지 않을 때만 지운다');
-for (const [oldName, newName] of Object.entries(ALIAS)) {
+for (const [oldName, newName] of [...Object.entries(ALIAS), ...Object.entries(PRIOR_RENAMES)]) {
   const o = sqlText(oldName), n = sqlText(newName);
   out.push(`UPDATE ingredient o LEFT JOIN ingredient n ON n.name = ${n} SET o.name = ${n} WHERE o.name = ${o} AND n.id IS NULL;`);
   out.push(`DELETE o FROM ingredient o JOIN ingredient n ON n.name = ${n} AND n.id <> o.id`
