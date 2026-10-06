@@ -37,13 +37,7 @@ public class RefrigeratorIngredient {
         this.name = refridgeDto.getName();
         this.unit = refridgeDto.getUnit();
         this.quantity = refridgeDto.getQuantity();
-        if (refridgeDto.getType().equals("실온")) {
-            this.type = StorageCondition.NORMAL;
-        } else if (refridgeDto.getType().equals("냉동실")) {
-            this.type = StorageCondition.FROZEN;
-        } else {
-            this.type = StorageCondition.REFRIGERATED;
-        }
+        this.type = StorageCondition.fromType(refridgeDto.getType()); // 잘못된 값이면 400 (D-015)
         this.input_date = refridgeDto.getInput_date();
         this.expire_date = refridgeDto.getExpire_date();
 
