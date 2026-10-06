@@ -3,6 +3,7 @@ package hicc_project.RottenToday.controller;
 import hicc_project.RottenToday.dto.RecipeDetailResponse;
 import hicc_project.RottenToday.dto.RecipeRequestDto;
 import hicc_project.RottenToday.dto.RecipeResponseDto;
+import hicc_project.RottenToday.service.RecipeRecommendService;
 import hicc_project.RottenToday.service.RecipeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,8 @@ import java.util.Map;
 public class RecipeController {
     @Autowired
     private RecipeService recipeService;
+    @Autowired
+    private RecipeRecommendService recipeRecommendService;
 
 
     @GetMapping("/api/users/{userId}/recipes/{recipeId}")
@@ -31,15 +34,11 @@ public class RecipeController {
         return ResponseEntity.ok("ok");
     }
 
-    @PostMapping("/api/users/{userId}/recipes")
-    public ResponseEntity<Map<String, List<RecipeResponseDto>>> recommendRecipe(
-            @RequestBody List<String> ingredients,
-            @PathVariable Long userId
-    ) {
-        log.info("recommendRecipe ingredients: {}", ingredients);
-        // 입력 검증과 예외 → 상태 코드 변환은 서비스와 GlobalExceptionHandler가 맡는다
-        List<RecipeResponseDto> recipeByIngredients = recipeService.getRecipeByIngredients(ingredients, userId);
-        return ResponseEntity.ok(Map.of("recipe", recipeByIngredients));
+    // 재료는 서버가 사용자 냉장고에서 고른다 (C1, D-018). 예외 → 상태 코드 변환은 GlobalExceptionHandler가 맡는다
+    @GetMapping("/api/users/{userId}/recipes")
+    public ResponseEntity<Map<String, List<RecipeResponseDto>>> recommendRecipe(@PathVariable Long userId) {
+        List<RecipeResponseDto> recipes = recipeRecommendService.recommendFromFridge(userId);
+        return ResponseEntity.ok(Map.of("recipe", recipes));
     }
 
 
