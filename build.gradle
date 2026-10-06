@@ -32,7 +32,10 @@ dependencies {
 	implementation 'org.json:json:20230227'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	// protobuf는 X DevAPI(mysqlx)에서만 쓴다. JDBC만 쓰므로 제외해 Vision이 쓰는 protobuf 3.x를 덮어쓰지 않게 한다 (B21)
+	runtimeOnly('com.mysql:mysql-connector-j') {
+		exclude group: 'com.google.protobuf', module: 'protobuf-java'
+	}
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
