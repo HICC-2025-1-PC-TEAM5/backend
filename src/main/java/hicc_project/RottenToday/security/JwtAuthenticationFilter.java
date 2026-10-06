@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
@@ -28,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -102,12 +104,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(request);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            chain.doFilter(request, response);
-
         } catch (Exception e) {
+            // 토큰 값은 로그에 남기지 않는다
+            log.debug("JWT 검증 실패: {}", e.getClass().getSimpleName());
             SecurityContextHolder.clearContext();
             unauthorized(response, "invalid_or_expired_token");
+            return;
         }
+
+        // 인증 뒤 컨트롤러에서 난 예외가 위 catch에 잡혀 401로 바뀌지 않도록 try 밖에서 넘긴다 (B20)
+        chain.doFilter(request, response);
     }
 
     private void unauthorized(HttpServletResponse response, String code) throws IOException {

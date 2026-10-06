@@ -36,6 +36,7 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/t/duplicate") void duplicate() { throw new DuplicateEntityException("이미 알러지 등록한 항목입니다."); }
         @GetMapping("/t/jwt") void jwt() { throw new MalformedJwtException("Malformed JWT JSON: {garbage"); }
         @GetMapping("/t/runtime") void runtime() { throw new RuntimeException(INTERNAL_DETAIL); }
+        @GetMapping("/t/io") void io() throws java.io.IOException { throw new java.io.IOException(INTERNAL_DETAIL); }
         @GetMapping("/t/status") void status() { throw new ResponseStatusException(HttpStatus.FORBIDDEN, "금지"); }
         @PostMapping("/t/body") void body(@RequestBody List<String> body) { }
         @GetMapping("/t/typed/{id}") void typed(@PathVariable Long id) { }
@@ -124,6 +125,17 @@ class GlobalExceptionHandlerTest {
         assertThat(output.getAll()).contains("secret-body");
     }
 
+
+    @Test
+    void 컨트롤러의_IOException도_500_고정_문구이고_상세는_서버_로그에만_남는다(CapturedOutput output) throws Exception { // B20
+        String body = mvc.perform(get("/t/io"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("서버 오류가 발생했습니다."))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(body).doesNotContain("secret-body");
+        assertThat(output.getAll()).contains("secret-body");
+    }
     @Test
     void ResponseStatusException은_지정한_상태를_유지한다() throws Exception {
         mvc.perform(get("/t/status"))

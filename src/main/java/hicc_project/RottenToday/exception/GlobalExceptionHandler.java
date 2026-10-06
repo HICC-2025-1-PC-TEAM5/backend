@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.io.IOException;
+
 // 응답 형식과 500 메시지 정책은 D-011
 @Slf4j
 @ControllerAdvice
@@ -74,6 +76,14 @@ public class GlobalExceptionHandler {
     // 예외 메시지에 외부 API 응답 본문 같은 내부 정보가 있을 수 있어 응답에는 고정 문구만 보낸다
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        log.error("처리되지 않은 예외", ex);
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_ERROR_MESSAGE);
+    }
+
+    // 컨트롤러가 던지는 검사 예외(사진·영수증 인식의 IOException 등)도 같은 500 형식으로 응답한다 (B20)
+    @ExceptionHandler({IOException.class, InterruptedException.class})
+    public ResponseEntity<ErrorResponse> handleCheckedException(Exception ex) {
+        if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
         log.error("처리되지 않은 예외", ex);
         return error(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_ERROR_MESSAGE);
     }
