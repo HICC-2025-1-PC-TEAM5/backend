@@ -1,7 +1,6 @@
 package hicc_project.RottenToday.entity;
 
 import hicc_project.RottenToday.dto.RecipeDto;
-import hicc_project.RottenToday.dto.RecipeResponseDto;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,19 +46,6 @@ public class Recipe {
 
     public Recipe() {};
 
-    public Recipe(RecipeResponseDto responseDto) {
-        this.name = responseDto.getName();
-        this.type = responseDto.getType();
-        this.image = responseDto.getImage();
-        this.kcal = responseDto.getKcal();
-        this.protein = responseDto.getProtein();
-        this.sodium = responseDto.getSodium();
-        this.carbohydrate = responseDto.getCarbohydrate();
-        this.fat = responseDto.getFat();
-        this.ingredients = responseDto.getIngredients();
-        this.recipeSteps = responseDto.getSteps();
-
-    };
 
     /** CSV 레시피로 내용을 채우거나 갱신한다. 단계는 통째로 교체한다 (레시피 계획 Phase 4) */
     public void updateFrom(RecipeDto dto) {

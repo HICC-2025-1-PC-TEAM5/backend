@@ -1,20 +1,18 @@
 package hicc_project.RottenToday.dto;
 
 import hicc_project.RottenToday.entity.Recipe;
-import hicc_project.RottenToday.entity.RecipeStep;
 
-import java.util.List;
-
+// GET /api/users/{userId}/recipes/{recipeId} → { recipe, recipeGuide: { steps } }
 public class RecipeDetailResponse {
-    private final Recipe recipe;
+    private final RecipeDetailDto recipe;
     private final RecipeGuide recipeGuide;
 
     public RecipeDetailResponse(Recipe recipe, RecipeGuide recipeGuide) {
-        this.recipe = recipe;
+        this.recipe = RecipeDetailDto.from(recipe);
         this.recipeGuide = recipeGuide;
     }
 
-    public Recipe getRecipe() {
+    public RecipeDetailDto getRecipe() {
         return recipe;
     }
 
