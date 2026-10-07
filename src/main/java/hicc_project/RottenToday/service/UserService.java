@@ -48,7 +48,7 @@ public class UserService {
         List<LikeDto> likes = new ArrayList<>();
         List<DislikeDto> dislikes = new ArrayList<>();
         for (Taste recipe : recipes) {
-            if (recipe.getType().getStatus() == "좋아요"){
+            if (recipe.getType() == Appetite.LIKE){
                 TasteRecipeDto tasteRecipeDto = new TasteRecipeDto(recipe);
                 LikeDto likeDto = new LikeDto(tasteRecipeDto);
                 likes.add(likeDto);
@@ -67,9 +67,7 @@ public class UserService {
         recipe.setUsed(true); //레시피 사용된거는 디비에서 안지워지게 설정하기 위함
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        if (!(appetite.equals("좋아요") || appetite.equals("싫어요"))){
-            throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요' 입력할 수 있습니다.");
-        }
+        Appetite.fromStatus(appetite); // 좋아요/싫어요가 아니면 400
 
         if (tasteRepository.findByRecipeIdAndMemberId(recipeId, userId).isPresent()){
             throw new DuplicateEntityException("이미 해당 레시피를 저장하였습니다.");

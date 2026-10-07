@@ -44,9 +44,7 @@ public class RecipeService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 레시피 존재 x"));
-        if (!(appetite.equals("좋아요") || appetite.equals("싫어요"))){
-            throw new IllegalArgumentException("type 변수값으로 '좋아요' 혹은 '싫어요'만 입력할 수 있습니다.");
-        }
+        Appetite.fromStatus(appetite); // 좋아요/싫어요가 아니면 400
         if (tasteRepository.findByRecipeIdAndMemberId(recipeId, userId).isPresent()){
             throw new DuplicateEntityException("이미 해당 레시피를 저장하였습니다.");
         }
