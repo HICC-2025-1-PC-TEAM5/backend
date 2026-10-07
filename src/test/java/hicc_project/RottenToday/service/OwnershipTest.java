@@ -4,6 +4,7 @@ import hicc_project.RottenToday.dto.FavoriteRequestDto;
 import hicc_project.RottenToday.dto.RefridgeIngredientRequest;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.*;
+import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,8 @@ class OwnershipTest {
         fridgeRepository = mock(RefrigeratorIngredientRepository.class);
         allergyRepository = mock(AllergyRepository.class);
         historyRepository = mock(HistoryRepository.class);
-        ingredientService = new IngredientService(fridgeRepository, mock(IngredientRepository.class), mock(MemberRepository.class));
+        ingredientService = new IngredientService(fridgeRepository, mock(IngredientRepository.class), mock(MemberRepository.class),
+                new RecipeIngredientParser(List.<RecipeIngredientParser.AliasEntry>of()));
         userService = new UserService(mock(TasteRepository.class), mock(RecipeRepository.class), historyRepository,
                 mock(MemberRepository.class), allergyRepository, mock(IngredientRepository.class));
     }

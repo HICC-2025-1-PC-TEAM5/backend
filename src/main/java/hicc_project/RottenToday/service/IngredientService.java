@@ -8,6 +8,7 @@ import hicc_project.RottenToday.exception.NoInputException;
 import hicc_project.RottenToday.repository.IngredientRepository;
 import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RefrigeratorIngredientRepository;
+import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
 import jakarta.persistence.EntityNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,6 +33,7 @@ public class IngredientService {
     RefrigeratorIngredientRepository refrigeratorIngredientRepository;
     IngredientRepository ingredientRepository;
     MemberRepository memberRepository;
+    RecipeIngredientParser ingredientParser; // 냉장고 재료 이름을 마스터 이름으로 맞춘다 (B23)
 
     @Value("${clova.ocr.url}")
     private String clovaOcrUrl;
@@ -40,10 +42,11 @@ public class IngredientService {
     private String clovaOcrSecret;
 
     @Autowired
-    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository) {
+    public IngredientService(RefrigeratorIngredientRepository refrigeratorIngredientRepository, IngredientRepository ingredientRepository, MemberRepository memberRepository, RecipeIngredientParser ingredientParser) {
         this.refrigeratorIngredientRepository = refrigeratorIngredientRepository;
         this.ingredientRepository = ingredientRepository;
         this.memberRepository = memberRepository;
+        this.ingredientParser = ingredientParser;
     }
 
 
@@ -65,11 +68,11 @@ public class IngredientService {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("해당 유저 존재x"));
         for (RefridgeDto dto : request.getRefrigeratorIngredient()) {
             RefrigeratorIngredient refrigeratorIngredient = new RefrigeratorIngredient(dto);
-            if (ingredientRepository.findByName(dto.getName()).isPresent()) {
-                Ingredient ingredient = ingredientRepository.findByName(dto.getName()).get();
+            // 이름은 사용자가 쓴 그대로 두고, 마스터 연결과 카테고리에만 정규화한 이름을 쓴다 (D-029)
+            findMaster(dto.getName()).ifPresent(ingredient -> {
                 refrigeratorIngredient.setIngredient(ingredient);
                 refrigeratorIngredient.setCategory(ingredient.getCategory());
-            }
+            });
             refrigeratorIngredient.setMember(member);
             LocalDateTime now = LocalDateTime.now();
             refrigeratorIngredient.setInput_date(now);
@@ -115,6 +118,19 @@ public class IngredientService {
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("해당 냉장고 재료 없음"));
         refrigeratorIngredientRepository.delete(target);
+    }
+
+    // 마스터와 이름이 같으면 그대로, 다르면 레시피와 같은 규칙(수식어 제거 + 동의어 사전)으로 다시 찾는다. 예: 계란 → 달걀 (D-029)
+    private Optional<Ingredient> findMaster(String name) {
+        Optional<Ingredient> exact = ingredientRepository.findByName(name);
+        if (exact.isPresent()) {
+            return exact;
+        }
+        String normalized = ingredientParser.normalize(name);
+        if (normalized.isEmpty() || normalized.equals(name)) {
+            return Optional.empty();
+        }
+        return ingredientRepository.findByName(normalized);
     }
 
     private static boolean isOwnedBy(RefrigeratorIngredient item, Long memberId) {

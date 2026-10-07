@@ -9,6 +9,7 @@ import hicc_project.RottenToday.entity.StorageCondition;
 import hicc_project.RottenToday.repository.IngredientRepository;
 import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RefrigeratorIngredientRepository;
+import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,7 +77,8 @@ class IngredientServiceExpireTest {
         member.setId(1L);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(ingredientRepository.findByName(any())).thenReturn(Optional.empty());
-        ingredientService = new IngredientService(fridgeRepository, ingredientRepository, memberRepository);
+        ingredientService = new IngredientService(fridgeRepository, ingredientRepository, memberRepository,
+                new RecipeIngredientParser(List.<RecipeIngredientParser.AliasEntry>of()));
     }
 
     private RefrigeratorIngredient register(LocalDateTime expire) {
