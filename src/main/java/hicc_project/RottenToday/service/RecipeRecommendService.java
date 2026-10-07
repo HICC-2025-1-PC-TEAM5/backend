@@ -118,7 +118,7 @@ public class RecipeRecommendService {
     private List<RecipeResponseDto> recommend(Member member, FridgeNames fridge) {
         // 1. 냉장고 재료가 하나라도 들어간 레시피
         Set<Long> candidateIds = recipeIngredientRepository.findNamesByNameIn(fridge.all()).stream()
-                .map(RecipeIngredientName::getRecipeId).collect(Collectors.toSet());
+                .map(RecipeIngredientName::getRecipeId).collect(Collectors.toCollection(HashSet::new)); // 아래에서 싫어요를 빼므로 변경 가능한 Set
         if (candidateIds.isEmpty()) return List.of();
 
         // 2. 싫어요 레시피 제외 (id로 비교)
@@ -140,6 +140,7 @@ public class RecipeRecommendService {
         // 4. 알레르기 재료의 모든 이름(동의어 포함, 공백 제외)이 원문에 들어 있으면 제외. 오탐은 허용하고 누락은 막는다 (B22)
         Set<String> allergyNames = new HashSet<>();
         for (Allergy allergy : member.getAllergies()) {
+            if (allergy.getIngredient() == null) continue; // 재료가 지워진 알레르기 행은 건너뛴다
             for (String name : ingredientParser.namesOf(allergy.getIngredient().getName())) {
                 allergyNames.add(name.replaceAll("\\s+", ""));
             }
@@ -171,7 +172,8 @@ public class RecipeRecommendService {
                 .stream().collect(Collectors.toMap(Recipe::getId, Function.identity()));
         List<RecipeResponseDto> result = new ArrayList<>();
         for (Candidate c : top) {
-            RecipeResponseDto dto = new RecipeResponseDto(recipes.get(c.recipe().getId()));
+            Recipe recipe = recipes.get(c.recipe().getId());
+            RecipeResponseDto dto = new RecipeResponseDto(recipe);
             dto.setMatchedCount(c.matched().size());
             dto.setImminentCount(c.imminentCount());
             dto.setMissingIngredients(c.missing());

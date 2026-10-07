@@ -1,6 +1,7 @@
 package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.RecipeResponseDto;
+import hicc_project.RottenToday.dto.RecipeStepDto;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.*;
 import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
@@ -227,6 +228,62 @@ class RecipeRecommendServiceTest {
         recommend();
 
         assertThat(recipeRepository.count()).isEqualTo(before);
+    }
+
+    @Test
+    void 일련번호는_숫자로_비교한다() {
+        fridge("두부", 30);
+        recipe("10", "두부요리10", "두부");
+        recipe("9", "두부요리9", "두부");
+        recipe("100", "두부요리100", "두부");
+
+        assertThat(names(recommend())).containsExactly("두부요리9", "두부요리10", "두부요리100");
+    }
+
+    @Test
+    void 같은_재료가_지난_것과_새것으로_있으면_일치로_세고_지난_재료로도_알려준다() {
+        fridge("두부", -2);
+        fridge("두부", 2);
+        recipe("1", "두부조림", "두부");
+
+        RecipeResponseDto dto = recommend().get(0);
+
+        assertThat(dto.getImminentCount()).isEqualTo(1);
+        assertThat(dto.getExpiredIngredients()).containsExactly("두부");
+    }
+
+    @Test
+    void 냉장고에_양념만_있으면_빈_목록() {
+        fridge("간장", 1);
+        fridge("소금", 30);
+        recipe("1", "간장소스", "간장", "소금", "양파");
+
+        assertThat(recommend()).isEmpty();
+    }
+
+    @Test
+    void 재료가_없는_알레르기_행이_있어도_실패하지_않는다() {
+        em.persist(new Allergy(member, null));
+        fridge("두부", 30);
+        recipe("1", "두부조림", "두부");
+
+        assertThat(names(recommend())).containsExactly("두부조림");
+    }
+
+    @Test
+    void 응답의_조리_단계는_값으로_채워진다() {
+        fridge("두부", 30);
+        Recipe recipe = recipe("1", "두부조림", "두부");
+        RecipeStep step = new RecipeStep(1, "두부를 썬다.", null);
+        step.setRecipe(recipe);
+        recipe.setRecipeSteps(new ArrayList<>(List.of(step)));
+        em.persist(step);
+
+        RecipeResponseDto dto = recommend().get(0);
+
+        // 엔티티가 아니라 값으로 복사한 DTO여야 트랜잭션 밖 직렬화에서 실패하지 않는다
+        assertThat(dto.getSteps()).hasOnlyElementsOfType(RecipeStepDto.class);
+        assertThat(dto.getSteps()).extracting(RecipeStepDto::description).containsExactly("두부를 썬다.");
     }
 
     @Test

@@ -87,7 +87,7 @@ public class RecipeImportService {
                 List<String> seqs = chunk.stream().map(RecipeDto::getRCP_SEQ).toList();
                 failed.addAll(seqs);
                 log.warn("레시피 적재 묶음 실패 {}건 (RCP_SEQ {} ~ {}): {}", seqs.size(), seqs.get(0), seqs.get(seqs.size() - 1),
-                        e.getClass().getSimpleName());
+                        e.getClass().getSimpleName(), e);
             }
         }
 
