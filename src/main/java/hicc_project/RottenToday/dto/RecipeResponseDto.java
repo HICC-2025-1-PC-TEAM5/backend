@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import hicc_project.RottenToday.entity.Recipe;
 import hicc_project.RottenToday.entity.RecipeStep;
 import lombok.Getter;
@@ -25,6 +26,16 @@ public class RecipeResponseDto {
     private String ingredients;
     private String image;
     private List<RecipeStep> steps;
+
+    // 추천 응답에만 채운다 (레시피 계획 Phase 5, D-019). 다른 응답에서는 빠진다
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer matchedCount;          // 냉장고와 겹치는 재료 수 (양념 제외)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer imminentCount;         // 그중 소비기한 임박 재료 수
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<String> missingIngredients; // 냉장고에 없는 재료 (양념 제외)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<String> expiredIngredients; // 이 레시피에 쓰이는 소비기한 지난 냉장고 재료 (FE가 확인 안내 표시)
 
 
     public static RecipeResponseDto from(RecipeDto dto) {

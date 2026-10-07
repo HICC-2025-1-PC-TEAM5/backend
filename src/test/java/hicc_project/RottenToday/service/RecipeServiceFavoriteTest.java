@@ -1,6 +1,5 @@
 package hicc_project.RottenToday.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.entity.Recipe;
 import hicc_project.RottenToday.entity.Taste;
@@ -9,7 +8,6 @@ import hicc_project.RottenToday.repository.MemberRepository;
 import hicc_project.RottenToday.repository.RecipeRepository;
 import hicc_project.RottenToday.repository.RecipeStepRepository;
 import hicc_project.RottenToday.repository.TasteRepository;
-import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +28,7 @@ class RecipeServiceFavoriteTest {
         tasteRepository = mock(TasteRepository.class);
         MemberRepository memberRepository = mock(MemberRepository.class);
         RecipeRepository recipeRepository = mock(RecipeRepository.class);
-        recipeService = new RecipeService(recipeRepository, tasteRepository, memberRepository,
-                new ObjectMapper(), mock(RecipeStepRepository.class), new RecipeIngredientParser(java.util.Map.of()));
+        recipeService = new RecipeService(recipeRepository, tasteRepository, memberRepository, mock(RecipeStepRepository.class));
 
         Member member = new Member();
         member.setId(3L);
