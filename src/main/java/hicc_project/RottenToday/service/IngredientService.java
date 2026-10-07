@@ -73,10 +73,11 @@ public class IngredientService {
             refrigeratorIngredient.setMember(member);
             LocalDateTime now = LocalDateTime.now();
             refrigeratorIngredient.setInput_date(now);
-            int plusDays = measureExpireDate(refrigeratorIngredient.getCategory(), refrigeratorIngredient.getType());
-            LocalDateTime expireDate = refrigeratorIngredient.getInput_date().plusDays(plusDays);
-
-            refrigeratorIngredient.setExpire_date(expireDate);
+            // 사용자가 소비기한을 입력했으면 그 값을 쓰고, 없을 때만 계산한다 (D-028)
+            if (refrigeratorIngredient.getExpire_date() == null) {
+                int plusDays = measureExpireDate(refrigeratorIngredient.getCategory(), refrigeratorIngredient.getType());
+                refrigeratorIngredient.setExpire_date(refrigeratorIngredient.getInput_date().plusDays(plusDays));
+            }
 
             refrigeratorIngredientRepository.save(refrigeratorIngredient);
         }
@@ -120,7 +121,9 @@ public class IngredientService {
         return item.getMember() != null && item.getMember().getId().equals(memberId);
     }
 
-    private int measureExpireDate(Category category, StorageCondition condition) {
+    // 반입일에 더할 일수 (D-028). 실온 육류·어패류·유제품은 당일(0일)로 둔다 — 바로 냉장·냉동하거나 오늘 쓰라는 뜻
+    // 가공식품, 두류·기름·조미료의 냉장·냉동, 음료 냉동은 B24에서 채운 근삿값이다. 두류 냉장은 두부에 맞춰 짧게 잡았다
+    static int measureExpireDate(Category category, StorageCondition condition) {
         int expireDate = 0;
 
         switch (category) {
@@ -153,21 +156,24 @@ public class IngredientService {
                 else if (condition == StorageCondition.FROZEN) {expireDate = 45; break;}
                 break;
             case BEANS: if (condition == StorageCondition.NORMAL) {expireDate = 270; break;}
-                else if (condition == StorageCondition.REFRIGERATED) {break;}
-                else if (condition == StorageCondition.FROZEN) {break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 5; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 90; break;}
                 break;
             case OIL: if (condition == StorageCondition.NORMAL) {expireDate = 270; break;}
-                else if (condition == StorageCondition.REFRIGERATED) {break;}
-                else if (condition == StorageCondition.FROZEN) {break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 270; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 270; break;}
                 break;
             case CONDIMENT: if (condition == StorageCondition.NORMAL) {expireDate = 1000; break;}
-                else if (condition == StorageCondition.REFRIGERATED) {break;}
-                else if (condition == StorageCondition.FROZEN) {break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 365; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 365; break;}
                 break;
-            case PROCESSED: break;
+            case PROCESSED: if (condition == StorageCondition.NORMAL) {expireDate = 30; break;}
+                else if (condition == StorageCondition.REFRIGERATED) {expireDate = 7; break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 60; break;}
+                break;
             case DRINK: if (condition == StorageCondition.NORMAL) {expireDate = 135; break;}
                 else if (condition == StorageCondition.REFRIGERATED) {expireDate = 4; break;}
-                else if (condition == StorageCondition.FROZEN) {break;}
+                else if (condition == StorageCondition.FROZEN) {expireDate = 30; break;}
                 break;
             case ETC: if (condition == StorageCondition.NORMAL) {expireDate = 5; break;}
             else if (condition == StorageCondition.REFRIGERATED) {expireDate = 10; break;}
