@@ -43,3 +43,6 @@ src/main/resources/application.properties
 ### Docker ###
 .env
 secrets/
+
+# DB 백업 (D-022)
+backups/

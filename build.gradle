@@ -19,6 +19,9 @@ configurations {
 	}
 }
 
+// Spring Boot 3.4가 관리하는 Testcontainers 1.20.x는 Docker Engine 29(최소 API 1.40)에 연결하지 못한다(400). 수정된 버전으로 올린다 (D-023)
+ext['testcontainers.version'] = '1.21.4'
+
 repositories {
 	mavenCentral()
 }
@@ -37,7 +40,14 @@ dependencies {
 		exclude group: 'com.google.protobuf', module: 'protobuf-java'
 	}
 	annotationProcessor 'org.projectlombok:lombok'
+	// 스키마 변경은 Flyway 마이그레이션으로 관리한다 (D-023). 파일: src/main/resources/db/migration
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// DB 테스트는 실제 MySQL 컨테이너로 한다 (D-023). Docker가 없으면 해당 테스트는 건너뛴다
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:mysql'
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-security'

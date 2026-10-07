@@ -38,6 +38,11 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       GOOGLE_APPLICATION_CREDENTIALS: /app/secrets/google-vision.json
+      # 스키마는 Flyway가 만든다(D-023). Hibernate는 엔티티와 스키마가 맞는지만 확인한다
+      # 이미 테이블이 있고 Flyway 이력이 없는 DB는 V1(기준 스키마)을 적용된 것으로 보고 V2부터 실행한다
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      SPRING_FLYWAY_BASELINE_VERSION: "1"
       TZ: Asia/Seoul
     volumes:
       - ./src/main/resources/application.properties:/app/config/application.properties:ro

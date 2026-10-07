@@ -14,6 +14,7 @@ public class RecipeStep {
     private Long id;
 
     private int stepNum;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String image;
 

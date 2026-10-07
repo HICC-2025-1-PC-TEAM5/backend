@@ -11,6 +11,10 @@ import java.util.List;
 @Getter
 @Setter
 public class RecipeDto {
+    // 레시피 일련번호. 로컬 DB 적재 시 Recipe.rcpSeq로 저장한다 (V2)
+    @JsonProperty("RCP_SEQ")
+    private String RCP_SEQ;
+
     @JsonProperty("RCP_NM")
     private String RCP_NM;
 
@@ -96,7 +100,7 @@ public class RecipeDto {
     private String MANUAL_IMG14;
     @JsonProperty("MANUAL15")
     private String MANUAL15;
-    @JsonProperty("MANUAL_IMG015")
+    @JsonProperty("MANUAL_IMG15")
     private String MANUAL_IMG15;
     @JsonProperty("MANUAL16")
     private String MANUAL16;
