@@ -62,6 +62,20 @@ class IngredientSeedTest {
     }
 
     @Test
+    void 영양성분은_알_껍질이_아니라_먹는_부위_행에서_가져온다() throws Exception {
+        runSeed();
+
+        // D-035: 예전 규칙은 '대표'가 붙은 연어알(250kcal)·새우 껍질(323kcal) 행을 골랐다
+        assertThat(jdbcTemplate.queryForObject("SELECT source_food_code FROM ingredient WHERE name = '연어'", String.class))
+                .isEqualTo("R211-201034001-0000");
+        assertThat(jdbcTemplate.queryForObject("SELECT energy_kcal FROM ingredient WHERE name = '연어'", Double.class)).isEqualTo(120.0);
+        // 새우는 원본에 생 살코기 행이 없어 흰다리새우 값을 쓴다. 카테고리는 어패류 그대로
+        assertThat(jdbcTemplate.queryForObject("SELECT source_food_code FROM ingredient WHERE name = '새우'", String.class))
+                .isEqualTo("R211-717414001-0000");
+        assertThat(jdbcTemplate.queryForObject("SELECT category FROM ingredient WHERE name = '새우'", Integer.class)).isEqualTo(4);
+    }
+
+    @Test
     void 두_번_실행해도_결과가_같다() throws Exception {
         runSeed();
         int first = count();

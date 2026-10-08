@@ -160,11 +160,20 @@ for (const r of rows) {
   groups.get(name).push(r);
 }
 
-// 대표 행: 세분류 '생것' + 식품명에 '대표' → '생것' → 첫 행 (D-013)
+// 대표 행: 세분류 '생것' 중 먹는 부위(알·내장·간·껍질 등이 아닌 행) + 식품명에 '대표' → 먹는 부위 → '생것' + '대표' → '생것' → 첫 행
+// (D-013, D-035: 예전 규칙은 연어=연어알처럼 '대표'가 붙은 다른 부위 행을 골랐다)
+const NON_EDIBLE_PARTS = ['알', '내장', '간', '껍질', '뼈', '머리', '유충'];
+// 식품명 조각(예: '대구류_대구_알_생것_대표_평균', '수컷,육')에 먹는 부위가 아닌 이름이 있으면 제외
+const isNonEdiblePart = (r) => r[col('식품명')].split('_').some((p) => p.split(',').some((x) => NON_EDIBLE_PARTS.includes(x.trim())));
 function representative(list) {
   const raw = list.filter((r) => r[col('식품세분류명')] === '생것');
-  return raw.find((r) => r[col('식품명')].includes('대표')) || raw[0] || list[0];
+  const edible = raw.filter((r) => !isNonEdiblePart(r));
+  const withRep = (rs) => rs.find((r) => r[col('식품명')].includes('대표'));
+  return withRep(edible) || edible[0] || withRep(raw) || raw[0] || list[0];
 }
+
+// 영양성분을 다른 이름의 행에서 가져오는 재료. 원본에 생 살코기 행이 없다 (D-035: '새우'는 생것이 껍질 행뿐)
+const NUTRIENT_FROM = { '새우': '흰다리새우' };
 
 // 카테고리: 그룹 안에서 가장 많은 대분류. 동률이면 먼저 나온 것
 function categoryOf(list) {
@@ -183,7 +192,9 @@ const sqlNum = (v) => (v === '' || v == null || isNaN(Number(v)) ? 'NULL' : Stri
 
 const values = [];
 for (const [name, list] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ko'))) {
-  const rep = representative(list);
+  const from = NUTRIENT_FROM[name];
+  if (from && !groups.has(from)) throw new Error(`영양성분을 가져올 이름이 CSV에 없음: ${from}`);
+  const rep = representative(from ? groups.get(from) : list);
   const nutrients = NUTRIENTS.map(([, csvCol, type]) => (type === 'num' ? sqlNum : sqlText)(rep[col(csvCol)]));
   values.push(`(${sqlText(name)}, ${categoryOf(list)}, ${nutrients.join(', ')})`);
 }
