@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.controller;
 
+import hicc_project.RottenToday.dto.ErrorResponse;
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.jwt.JwtProperties;
 import hicc_project.RottenToday.service.JwtService;
@@ -43,6 +44,8 @@ class AuthLoggingTest {
         ResponseEntity<?> response = controller.refresh(null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        // 공통 에러 형식 {error, message} (D-011)
+        assertThat(response.getBody()).isEqualTo(new ErrorResponse("UNAUTHORIZED", "로그인이 필요합니다."));
     }
 
     @Test

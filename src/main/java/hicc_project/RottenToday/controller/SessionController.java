@@ -1,5 +1,6 @@
 package hicc_project.RottenToday.controller;
 
+import hicc_project.RottenToday.dto.ErrorResponse;
 import hicc_project.RottenToday.jwt.JwtProperties;
 import hicc_project.RottenToday.service.JwtService;
 import hicc_project.RottenToday.service.MemberService;
@@ -25,7 +26,9 @@ public class SessionController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@CookieValue(name="refresh_token", required=false) String refresh) {
         if (refresh == null || refresh.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error","no_refresh_cookie"));
+            // 공통 에러 형식 {error, message} (D-011). FE는 401이면 로그인 화면을 보여 준다
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ErrorResponse.of(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."));
         }
         var pair = jwtService.refresh(refresh); // 검증 + 로테이션
 
