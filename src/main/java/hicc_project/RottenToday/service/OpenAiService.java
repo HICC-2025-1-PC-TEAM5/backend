@@ -47,99 +47,8 @@ public class OpenAiService {
                 "- 잘모르겠으면 null값으로 줘도 돼" +
                 "- 주의 사항은 필요없음, 식재료 배열 json만 출력";
 
-        ChatRequest request = ChatRequest.builder()
-                .model("gpt-4.1")
-                .messages(List.of(
-                        ChatMessage.builder()
-                                .role("system")
-                                .content(systemPrompt)
-                                .build(),
-                        ChatMessage.builder()
-                                .role("user")
-                                .content(message)
-                                .build()
-                ))
-                .maxTokens(2000)
-                .temperature(0.3)
-                .build();
-
-
-        try {
-
-
-            log.info("GPT API 호출 시작 - URL: {}", openAiProperties.getUrl());
-            log.debug("요청 데이터: {}", request);
-
-            ChatResponse response = webClient.post()
-                    .uri("/v1/chat/completions")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + openAiProperties.getKey().trim())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(request)
-                    .retrieve()
-                    .onStatus(status -> status.is4xxClientError(), clientResponse -> {
-                        log.error("GPT API 클라이언트 오류 발생: {}", clientResponse.statusCode());
-                        return clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("오류 응답 본문: {}", errorBody);
-                                    return Mono.error(new RuntimeException("GPT API 클라이언트 오류 (" +
-                                            clientResponse.statusCode() + "): " + errorBody));
-                                });
-                    })
-                    .onStatus(status -> status.is5xxServerError(), serverResponse -> {
-                        log.error("GPT API 서버 오류 발생: {}", serverResponse.statusCode());
-                        return serverResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("서버 오류 응답 본문: {}", errorBody);
-                                    return Mono.error(new RuntimeException("GPT API 서버 오류 (" +
-                                            serverResponse.statusCode() + "): " + errorBody));
-                                });
-                    })
-                    .bodyToMono(ChatResponse.class)
-                    .timeout(Duration.ofSeconds(30))
-                    .block();
-
-            log.info("GPT API 응답 수신 완료 = {}", response);
-
-
-
-            String content = response.getChoices().get(0).getMessage().getContent();
-            ObjectMapper mapper = new ObjectMapper();
-            List<IngredientDto> ingredients =
-                    mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
-            log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
-
-            List<IngredientDto> ingredients2 = new ArrayList<>();
-            for (IngredientDto ingredient : ingredients) {
-                if (ingredient.getCategory().equals("가공식품") || ingredient.getCategory().equals("음료류")) {
-                    IngredientDto dto = new IngredientDto();
-                    dto.setCategory(ingredient.getCategory());
-                    dto.setName(ingredient.getName());
-                    ingredients2.add(dto);
-                } else {
-                    IngredientDto dto = new IngredientDto();
-                    dto.setCategory(ingredient.getCategory());
-                    dto.setName(ingredient.getSubcategory());
-                    ingredients2.add(dto);
-                }
-            }
-
-
-            return ingredients2;
-
-        } catch (WebClientRequestException e) {
-            log.error("GPT API 요청 전송 실패", e);
-            throw new RuntimeException("GPT API 요청 전송 실패: " + e.getMessage(), e);
-        } catch (WebClientResponseException e) {
-            log.error("GPT API 응답 오류 - 상태코드: {}, 응답본문: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("GPT API 응답 오류 (" + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
-        } catch (Exception e) {
-            log.error("GPT API 호출 중 예상치 못한 오류", e);
-            throw new RuntimeException("GPT API 호출 중 예상치 못한 오류 발생: " + e.getMessage(), e);
-        }
+        return requestIngredients(systemPrompt, message);
     }
-
-
-
 
     public List<IngredientDto> getChatCompletion(String message) {
         String systemPrompt = "당신은 영수증에 명시된 글자들을 보고 식재료를 분류하는 AI입니다.\n" +
@@ -162,95 +71,7 @@ public class OpenAiService {
                 "  {\"name\": \"돼지고기\", \"category\": \"육류\", \"subcategory\": \"돼지고기\"}\n" +
                 "]";
 
-        ChatRequest request = ChatRequest.builder()
-                .model("gpt-4.1")
-                .messages(List.of(
-                        ChatMessage.builder()
-                                .role("system")
-                                .content(systemPrompt)
-                                .build(),
-                        ChatMessage.builder()
-                                .role("user")
-                                .content(message)
-                                .build()
-                ))
-                .maxTokens(2000)
-                .temperature(0.3)
-                .build();
-
-
-        try {
-
-
-            log.info("GPT API 호출 시작 - URL: {}", openAiProperties.getUrl());
-            log.debug("요청 데이터: {}", request);
-
-            ChatResponse response = webClient.post()
-                    .uri("/v1/chat/completions")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + openAiProperties.getKey().trim())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(request)
-                    .retrieve()
-                    .onStatus(status -> status.is4xxClientError(), clientResponse -> {
-                        log.error("GPT API 클라이언트 오류 발생: {}", clientResponse.statusCode());
-                        return clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("오류 응답 본문: {}", errorBody);
-                                    return Mono.error(new RuntimeException("GPT API 클라이언트 오류 (" +
-                                            clientResponse.statusCode() + "): " + errorBody));
-                                });
-                    })
-                    .onStatus(status -> status.is5xxServerError(), serverResponse -> {
-                        log.error("GPT API 서버 오류 발생: {}", serverResponse.statusCode());
-                        return serverResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("서버 오류 응답 본문: {}", errorBody);
-                                    return Mono.error(new RuntimeException("GPT API 서버 오류 (" +
-                                            serverResponse.statusCode() + "): " + errorBody));
-                                });
-                    })
-                    .bodyToMono(ChatResponse.class)
-                    .timeout(Duration.ofSeconds(30))
-                    .block();
-
-            log.info("GPT API 응답 수신 완료 = {}", response);
-
-
-
-            String content = response.getChoices().get(0).getMessage().getContent();
-            ObjectMapper mapper = new ObjectMapper();
-            List<IngredientDto> ingredients =
-                    mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
-            log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
-
-            List<IngredientDto> ingredients2 = new ArrayList<>();
-            for (IngredientDto ingredient : ingredients) {
-                if (ingredient.getCategory().equals("가공식품") || ingredient.getCategory().equals("음료류")) {
-                    IngredientDto dto = new IngredientDto();
-                    dto.setCategory(ingredient.getCategory());
-                    dto.setName(ingredient.getName());
-                    ingredients2.add(dto);
-                } else {
-                    IngredientDto dto = new IngredientDto();
-                    dto.setCategory(ingredient.getCategory());
-                    dto.setName(ingredient.getSubcategory());
-                    ingredients2.add(dto);
-                }
-            }
-
-
-            return ingredients2;
-
-        } catch (WebClientRequestException e) {
-            log.error("GPT API 요청 전송 실패", e);
-            throw new RuntimeException("GPT API 요청 전송 실패: " + e.getMessage(), e);
-        } catch (WebClientResponseException e) {
-            log.error("GPT API 응답 오류 - 상태코드: {}, 응답본문: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("GPT API 응답 오류 (" + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
-        } catch (Exception e) {
-            log.error("GPT API 호출 중 예상치 못한 오류", e);
-            throw new RuntimeException("GPT API 호출 중 예상치 못한 오류 발생: " + e.getMessage(), e);
-        }
+        return requestIngredients(systemPrompt, message);
     }
 
     public List<IngredientDto> getpicturetoingredient(List<String> labels) {
@@ -276,6 +97,14 @@ public class OpenAiService {
                 "  {\"name\": \"돼지고기\", \"category\": \"육류\", \"subcategory\": \"돼지고기\"}\n" +
                 "]";
 
+        return requestIngredients(systemPrompt, message);
+    }
+
+    /**
+     * 시스템 프롬프트 + 사용자 메시지로 Chat API를 한 번 호출하고 응답을 재료 목록으로 바꾼다 (B10: 세 메서드의 같은 코드를 모음).
+     * 가공식품·음료류는 name을, 나머지는 subcategory를 재료 이름으로 쓴다
+     */
+    private List<IngredientDto> requestIngredients(String systemPrompt, String message) {
         ChatRequest request = ChatRequest.builder()
                 .model("gpt-4.1")
                 .messages(List.of(
@@ -328,8 +157,6 @@ public class OpenAiService {
                     .block();
 
             log.info("GPT API 응답 수신 완료 = {}", response);
-
-
 
             String content = response.getChoices().get(0).getMessage().getContent();
             ObjectMapper mapper = new ObjectMapper();
