@@ -5,7 +5,9 @@ import hicc_project.RottenToday.entity.Allergy;
 import hicc_project.RottenToday.entity.Ingredient;
 import hicc_project.RottenToday.entity.Member;
 import hicc_project.RottenToday.exception.DuplicateEntityException;
+import hicc_project.RottenToday.exception.NoInputException;
 import hicc_project.RottenToday.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +59,21 @@ class UserServiceAllergyTest {
 
         assertThatThrownBy(() -> userService.addAllergy(2L, request(1L)))
                 .isInstanceOf(DuplicateEntityException.class);
+        verify(allergyRepository, never()).save(any());
+    }
+
+    @Test
+    void 재료_id가_없으면_400() { // B25: 전에는 findById(null)로 500
+        assertThatThrownBy(() -> userService.addAllergy(2L, new IngredientDto()))
+                .isInstanceOf(NoInputException.class)
+                .hasMessage("알레르기로 등록할 재료를 선택해 주세요.");
+        verify(allergyRepository, never()).save(any());
+    }
+
+    @Test
+    void 없는_재료_id면_404() {
+        assertThatThrownBy(() -> userService.addAllergy(2L, request(999L)))
+                .isInstanceOf(EntityNotFoundException.class);
         verify(allergyRepository, never()).save(any());
     }
 }

@@ -4,6 +4,7 @@ import hicc_project.RottenToday.dto.*;
 import hicc_project.RottenToday.dto.DislikeDto;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.exception.DuplicateEntityException;
+import hicc_project.RottenToday.exception.NoInputException;
 import hicc_project.RottenToday.repository.*;
 import hicc_project.RottenToday.dto.TasteRecipeDto;
 import hicc_project.RottenToday.dto.TasteRecipeResponse;
@@ -146,6 +147,10 @@ public class UserService {
 
     public void addAllergy(Long userId, IngredientDto request) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다"));
+        if (request.getIngredientId() == null) {
+            // findById(null)은 JPA에서 500이 된다 (B25)
+            throw new NoInputException("알레르기로 등록할 재료를 선택해 주세요.");
+        }
         Ingredient ingredient = ingredientRepository.findById(request.getIngredientId()).orElseThrow(() -> new EntityNotFoundException("해당 재료를 찾을 수 없습니다"));
         Allergy allergy = new Allergy(member, ingredient);
         if (allergyRepository.existsByMemberIdAndIngredientId(userId, request.getIngredientId())) {
