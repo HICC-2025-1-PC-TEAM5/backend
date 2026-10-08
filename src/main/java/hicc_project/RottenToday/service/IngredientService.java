@@ -26,6 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Service
 public class IngredientService {
@@ -422,8 +424,11 @@ public class IngredientService {
                 ingredient.remove(refrigeratorIngredient.getName());
             }
         }
+        // 이름마다 조회하지 않고 한 번에 조회한다. 순서는 위 목록 순서, 마스터에 없는 이름은 예전처럼 예외
+        Map<String, Ingredient> masters = ingredientRepository.findAllByNameIn(ingredient).stream()
+                .collect(Collectors.toMap(Ingredient::getName, Function.identity(), (x, y) -> x));
         for (String ingredientName : ingredient) {
-            Ingredient byName = ingredientRepository.findByName(ingredientName).orElseThrow();
+            Ingredient byName = Optional.ofNullable(masters.get(ingredientName)).orElseThrow();
             IngredientResponse ingredientResponse = new IngredientResponse(byName);
             ingredientResponseList.add(ingredientResponse);
         }
