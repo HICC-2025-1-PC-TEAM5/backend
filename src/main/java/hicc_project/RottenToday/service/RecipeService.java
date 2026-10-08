@@ -22,20 +22,24 @@ public class RecipeService {
     private final MemberRepository memberRepository;
     private final TasteRepository tasteRepository;
     private final RecipeStepRepository recipeStepRepository;
+    private final RecipeRecommendService recipeRecommendService; // 상세의 지난 재료 계산 (D-038)
 
     @Autowired
-    public RecipeService(RecipeRepository recipeRepository, TasteRepository tasteRepository, MemberRepository memberRepository, RecipeStepRepository recipeStepRepository) {
+    public RecipeService(RecipeRepository recipeRepository, TasteRepository tasteRepository, MemberRepository memberRepository, RecipeStepRepository recipeStepRepository, RecipeRecommendService recipeRecommendService) {
         this.recipeRepository = recipeRepository;
         this.tasteRepository = tasteRepository;
         this.memberRepository = memberRepository;
         this.recipeStepRepository = recipeStepRepository;
+        this.recipeRecommendService = recipeRecommendService;
     }
 
-    public RecipeDetailResponse getRecipeDetail(Long recipeId) {
+    public RecipeDetailResponse getRecipeDetail(Long userId, Long recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityNotFoundException("해당 레시피 존재 x"));
         List<RecipeStep> byRecipeId = recipeStepRepository.findByRecipeId(recipeId);
         RecipeGuide recipeGuide = new RecipeGuide(byRecipeId);
-        RecipeDetailResponse response = new RecipeDetailResponse(recipe, recipeGuide);
+        // 어느 화면에서 열어도 지난 재료 안내가 보이게 상세 응답에 넣는다 (D-038)
+        List<String> expired = recipeRecommendService.expiredIngredientsOf(userId, recipeId);
+        RecipeDetailResponse response = new RecipeDetailResponse(recipe, recipeGuide, expired);
         return response;
     }
 

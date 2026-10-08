@@ -115,8 +115,8 @@ class RecipeControllerTest {
     @Test
     void 레시피_상세는_화면에_쓰는_값만_주고_내부_필드는_내보내지_않는다() throws Exception { // D-031
         Recipe recipe = sampleRecipe();
-        when(recipeService.getRecipeDetail(7L))
-                .thenReturn(new RecipeDetailResponse(recipe, new RecipeGuide(recipe.getRecipeSteps())));
+        when(recipeService.getRecipeDetail(1L, 7L))
+                .thenReturn(new RecipeDetailResponse(recipe, new RecipeGuide(recipe.getRecipeSteps()), List.of("두부")));
 
         mvc.perform(get("/api/users/1/recipes/7"))
                 .andExpect(status().isOk())
@@ -127,6 +127,7 @@ class RecipeControllerTest {
                 .andExpect(jsonPath("$.recipe.portion").value("1인분"))
                 .andExpect(jsonPath("$.recipe.ingredients").value("두부 1모, 간장 2큰술"))
                 .andExpect(jsonPath("$.recipeGuide.steps[0].description").value("두부를 썬다."))
+                .andExpect(jsonPath("$.expiredIngredients[0]").value("두부")) // D-038
                 .andExpect(jsonPath("$.recipe.rcpSeq").doesNotExist())
                 .andExpect(jsonPath("$.recipe.recipeIngredients").doesNotExist())
                 .andExpect(jsonPath("$.recipe.recipeSteps").doesNotExist())

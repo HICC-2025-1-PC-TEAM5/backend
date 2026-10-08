@@ -28,7 +28,7 @@ class RecipeServiceFavoriteTest {
         tasteRepository = mock(TasteRepository.class);
         MemberRepository memberRepository = mock(MemberRepository.class);
         RecipeRepository recipeRepository = mock(RecipeRepository.class);
-        recipeService = new RecipeService(recipeRepository, tasteRepository, memberRepository, mock(RecipeStepRepository.class));
+        recipeService = new RecipeService(recipeRepository, tasteRepository, memberRepository, mock(RecipeStepRepository.class), mock(RecipeRecommendService.class));
 
         Member member = new Member();
         member.setId(3L);

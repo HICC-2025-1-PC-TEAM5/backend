@@ -97,6 +97,21 @@ public class RecipeRecommendService {
         return result;
     }
 
+    /**
+     * 레시피 상세용: 이 레시피 재료 중 냉장고에서 기한이 지난 것 (D-038).
+     * 추천과 같은 규칙(정규화·동의어 이름 일치, 양념 제외)이라 추천 카드의 expiredIngredients와 같다
+     */
+    @Transactional(readOnly = true)
+    public List<String> expiredIngredientsOf(Long memberId, Long recipeId) {
+        FridgeNames fridge = classify(ingredientService.getRefidge(memberId).getRefrigeratorIngredient());
+        if (fridge.expired().isEmpty()) return List.of();
+        return recipeIngredientRepository.findNamesByRecipeIdIn(List.of(recipeId)).stream()
+                .map(RecipeIngredientName::getName)
+                .filter(fridge.expired()::contains)
+                .distinct()
+                .toList();
+    }
+
     private FridgeNames classify(List<RefridgeDto> items) {
         LocalDate today = LocalDate.now(clock);
         Set<String> all = new HashSet<>(), imminent = new HashSet<>(), expired = new HashSet<>();

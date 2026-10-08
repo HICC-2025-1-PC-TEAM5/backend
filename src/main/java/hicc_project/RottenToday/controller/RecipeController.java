@@ -24,7 +24,7 @@ public class RecipeController {
 
     @GetMapping("/api/users/{userId}/recipes/{recipeId}")
     public ResponseEntity<RecipeDetailResponse> getRecipeDetail(@PathVariable Long userId, @PathVariable Long recipeId) {
-        RecipeDetailResponse recipeDetail = recipeService.getRecipeDetail(recipeId);
+        RecipeDetailResponse recipeDetail = recipeService.getRecipeDetail(userId, recipeId);
         return ResponseEntity.ok(recipeDetail);
     }
 

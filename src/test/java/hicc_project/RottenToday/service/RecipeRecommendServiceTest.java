@@ -290,4 +290,30 @@ class RecipeRecommendServiceTest {
     void 없는_회원이면_404() {
         assertThatThrownBy(() -> service.recommendFromFridge(999_999L)).isInstanceOf(EntityNotFoundException.class);
     }
+
+    // D-038: 레시피 상세의 지난 재료는 추천과 같은 규칙(정규화·동의어, 양념 제외)으로 레시피 재료만 본다
+    @Test
+    void 상세의_지난_재료는_레시피_재료_중_기한이_지난_것만_동의어까지_맞춰_준다() {
+        fridge("계란", -1);   // 동의어 → 달걀
+        fridge("두부", -2);
+        fridge("애호박", 5);   // 아직 괜찮음
+        fridge("간장", -1);   // 양념은 안내하지 않음
+        fridge("우유", -3);   // 레시피에 없는 재료(대체 재료 후보)는 안내하지 않음
+        Recipe recipe = recipe("1", "두부달걀찜", "달걀", "두부", "애호박", "간장");
+        em.flush();
+        em.clear();
+
+        assertThat(service.expiredIngredientsOf(member.getId(), recipe.getId()))
+                .containsExactlyInAnyOrder("달걀", "두부");
+    }
+
+    @Test
+    void 상세의_지난_재료가_없으면_빈_목록() {
+        fridge("두부", 2);
+        Recipe recipe = recipe("1", "두부조림", "두부");
+        em.flush();
+        em.clear();
+
+        assertThat(service.expiredIngredientsOf(member.getId(), recipe.getId())).isEmpty();
+    }
 }
