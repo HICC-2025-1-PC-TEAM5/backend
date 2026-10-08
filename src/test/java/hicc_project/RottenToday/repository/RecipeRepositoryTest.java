@@ -15,6 +15,7 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,11 +49,11 @@ class RecipeRepositoryTest {
     }
 
     @Test
-    void 마이그레이션이_V2까지_적용된다() {
+    void 마이그레이션이_V3까지_적용된다() {
         List<String> versions = jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success = 1 ORDER BY installed_rank", String.class);
 
-        assertThat(versions).containsExactly("1", "2");
+        assertThat(versions).containsExactly("1", "2", "3");
     }
 
     @Test
@@ -117,5 +118,21 @@ class RecipeRepositoryTest {
                 "SELECT index_name FROM information_schema.statistics WHERE table_schema = DATABASE() "
                         + "AND table_name = 'recipe_ingredient' AND column_name = 'name'", String.class))
                 .contains("idx_recipe_ingredient_name");
+    }
+
+    @Test
+    void V3는_분말_행으로_들어간_파프리카만_채소로_바로잡는다() throws Exception {
+        // 예전 seed로 만든 DB처럼 분말 행을 넣고, V3 스크립트를 다시 실행한다 (컨테이너 DB에는 seed가 없어 V3가 아무것도 바꾸지 않았다)
+        jdbcTemplate.update("INSERT INTO ingredient (name, category, energy_kcal, source_food_code) VALUES ('파프리카', 9, 520, 'R118-039100006-0000')");
+        jdbcTemplate.update("INSERT INTO ingredient (name, category, energy_kcal, source_food_code) VALUES ('파프리카가루', 9, 520, 'R118-039100006-0000')");
+        String v3 = new String(getClass().getResourceAsStream("/db/migration/V3__fix_paprika_master.sql").readAllBytes(), StandardCharsets.UTF_8);
+        jdbcTemplate.execute(v3.replaceAll("(?m)^--.*$", "").trim().replaceAll(";$", ""));
+
+        assertThat(jdbcTemplate.queryForObject("SELECT category FROM ingredient WHERE name = '파프리카'", Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject("SELECT energy_kcal FROM ingredient WHERE name = '파프리카'", Double.class)).isEqualTo(26.0);
+        assertThat(jdbcTemplate.queryForObject("SELECT source_food_code FROM ingredient WHERE name = '파프리카'", String.class))
+                .isEqualTo("R106-194008101-0000");
+        // 이름이 다른 행(분말 재료)은 건드리지 않는다
+        assertThat(jdbcTemplate.queryForObject("SELECT category FROM ingredient WHERE name = '파프리카가루'", Integer.class)).isEqualTo(9);
     }
 }
