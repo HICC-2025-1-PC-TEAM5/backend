@@ -1,14 +1,14 @@
 -- 재료 마스터 seed (D-013). 이 파일은 scripts/seed/build-ingredient-master.js가 생성한다. 직접 고치지 않는다
 -- 출처: 공공데이터포털 전국통합식품영양성분정보_원재료성식품_표준데이터 (CSV 3704행 → 재료 966개)
 -- 추가: CSV에 없는 기본 재료 106개 (영양성분 없음, D-013·D-027): 고추장, 식용유, 홍고추, 애호박, 단호박, 깻잎, 청양고추, 방울토마토, 어린잎채소, 쪽파, 양상추, 실파, 건표고버섯, 새싹채소, 적양배추, 영양부추, 알배추, 적양파, 건고추, 래디시, 식용꽃, 주키니호박, 레몬즙, 건포도, 오렌지주스, 홍시, 밀가루, 찹쌀가루, 빵가루, 현미, 강력분, 박력분, 튀김가루, 떡볶이떡, 스파게티, 라이스페이퍼, 실곤약, 쌀가루, 식빵, 닭가슴살, 삼겹살, 돼지등심, 닭다리살, 소고기등심, 건새우, 가쓰오부시, 관자, 달걀흰자, 달걀노른자, 버터, 생크림, 요거트, 모짜렐라치즈, 파마산치즈, 치즈, 크림치즈, 두부, 검은깨, 들깻가루, 두유, 견과류, 아몬드가루, 연두부, 콩가루, 순두부, 검은콩, 땅콩버터, 고추기름, 식초, 올리고당, 매실청, 청주, 맛술, 마요네즈, 유자청, 카레가루, 맛간장, 케첩, 물엿, 국간장, 발사믹식초, 생강청, 굴소스, 머스터드, 함초소금, 화이트와인, 강황가루, 겨자가루, 레드와인, 미소된장, 사과식초, 알룰로스, 바질가루, 새우젓, 진간장, 백년초가루, 김치, 베이컨, 토마토페이스트, 라면, 토마토소스, 게맛살, 백김치, 홀토마토, 드라이이스트, 판젤라틴
--- 앱을 한 번 기동해 ingredient 테이블과 영양성분 컬럼이 생긴 뒤 실행한다 (ddl-auto=update)
--- 여러 번 실행해도 된다: 없는 이름만 추가하고, 이미 있는 행은 영양성분이 비어 있을 때만 채운다
+-- 앱을 한 번 기동해 Flyway가 ingredient 테이블을 만든 뒤 실행한다 (D-023)
+-- 여러 번 실행해도 된다: 없는 이름은 추가하고, 이미 있는 행은 카테고리·영양성분·출처를 이 seed 값으로 맞춘다(id·이미지는 유지, B27)
 
 CREATE TEMPORARY TABLE ingredient_seed (
   name VARCHAR(255) NOT NULL, category TINYINT NOT NULL, nutrient_basis VARCHAR(255),
   energy_kcal DOUBLE, carbohydrate_g DOUBLE, protein_g DOUBLE, fat_g DOUBLE,
   sugar_g DOUBLE, dietary_fiber_g DOUBLE, sodium_mg DOUBLE, source_food_code VARCHAR(50)
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO ingredient_seed (name, category, nutrient_basis, energy_kcal, carbohydrate_g, protein_g, fat_g, sugar_g, dietary_fiber_g, sodium_mg, source_food_code) VALUES
   ('가다랑어', 4, '100g', 127, 0.3, 25.9, 1.8, 0.3, 0, NULL, 'R211-059014001-1197'),
@@ -1283,9 +1283,9 @@ INSERT INTO ingredient (name, category, nutrient_basis, energy_kcal, carbohydrat
 SELECT s.name, s.category, s.nutrient_basis, s.energy_kcal, s.carbohydrate_g, s.protein_g, s.fat_g, s.sugar_g, s.dietary_fiber_g, s.sodium_mg, s.source_food_code FROM ingredient_seed s
 WHERE NOT EXISTS (SELECT 1 FROM ingredient i WHERE i.name = s.name);
 
--- 2) 이미 있던 행: 카테고리·이미지는 그대로 두고 영양성분이 비어 있으면 채운다
+-- 2) 이미 있던 행: seed가 기준이다. 카테고리·영양성분·출처를 seed 값으로 맞춘다 (id·이미지는 그대로, B27)
+--    예전 seed로 만든 DB는 대표 행이 달라 영양성분 출처가 달랐다(해산물 10개, 파프리카는 V3)
 UPDATE ingredient i JOIN ingredient_seed s ON i.name = s.name
-SET i.nutrient_basis = s.nutrient_basis, i.energy_kcal = s.energy_kcal, i.carbohydrate_g = s.carbohydrate_g, i.protein_g = s.protein_g, i.fat_g = s.fat_g, i.sugar_g = s.sugar_g, i.dietary_fiber_g = s.dietary_fiber_g, i.sodium_mg = s.sodium_mg, i.source_food_code = s.source_food_code
-WHERE i.source_food_code IS NULL AND s.source_food_code IS NOT NULL;
+SET i.category = s.category, i.nutrient_basis = s.nutrient_basis, i.energy_kcal = s.energy_kcal, i.carbohydrate_g = s.carbohydrate_g, i.protein_g = s.protein_g, i.fat_g = s.fat_g, i.sugar_g = s.sugar_g, i.dietary_fiber_g = s.dietary_fiber_g, i.sodium_mg = s.sodium_mg, i.source_food_code = s.source_food_code;
 
 DROP TEMPORARY TABLE ingredient_seed;
