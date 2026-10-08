@@ -151,9 +151,33 @@ class RecipeIngredientParserTest {
 
     @Test
     void 기본_생성자는_리소스의_동의어_사전을_읽는다() {
-        // 이유 열이 있는 행도 읽는다 (사전: 계란→달걀, 후춧가루→후추)
+        // 이유 열이 있는 행도 읽는다 (사전: 계란→달걀, 흑임자→검은깨)
         RecipeIngredientParser fromResource = new RecipeIngredientParser();
         assertThat(fromResource.normalize("계란")).isEqualTo("달걀");
-        assertThat(fromResource.normalize("후춧가루")).isEqualTo("후추");
+        assertThat(fromResource.normalize("흑임자")).isEqualTo("검은깨");
+        // 검수에서 뺀 행(D-039)은 더 이상 합치지 않는다
+        assertThat(fromResource.normalize("후춧가루")).isEqualTo("후춧가루");
+        assertThat(fromResource.normalize("닭정육")).isEqualTo("닭정육");
+    }
+
+    // D-040: 대체 가능 관계는 양방향이고, 이름은 동의어 사전으로 정규화한다
+    @Test
+    void 대체_가능_관계는_양방향이고_동의어를_거쳐_맞춘다() {
+        RecipeIngredientParser parser = new RecipeIngredientParser(
+                List.of(new RecipeIngredientParser.AliasEntry("계란", "달걀", false)),
+                List.of(new RecipeIngredientParser.SubstituteEntry("달걀지단", "계란")));
+
+        assertThat(parser.substitutesOf("달걀지단")).containsExactly("달걀");
+        assertThat(parser.substitutesOf("계란")).containsExactly("달걀지단");
+        assertThat(parser.substitutesOf("두부")).isEmpty();
+        // 알레르기용: 같은 재료의 이름 + 대체 재료의 이름
+        assertThat(parser.relatedNamesOf("달걀지단")).contains("달걀지단", "달걀", "계란");
+    }
+
+    @Test
+    void 기본_생성자는_대체_재료_사전도_읽는다() {
+        RecipeIngredientParser fromResource = new RecipeIngredientParser();
+        assertThat(fromResource.substitutesOf("닭고기살")).contains("닭고기");
+        assertThat(fromResource.substitutesOf("참깨")).contains("통깨", "깨");
     }
 }
