@@ -108,7 +108,7 @@ class RecipeControllerTest {
                 .andExpect(jsonPath("$.recipe[0].name").value("두부조림"))
                 .andExpect(jsonPath("$.recipe[0].portion").value("1인분"))
                 .andExpect(jsonPath("$.recipe[0].ingredients").value("두부 1모, 간장 2큰술"))
-                .andExpect(jsonPath("$.recipe[0].steps[0].description").value("두부를 썬다."))
+                .andExpect(jsonPath("$.recipe[0].steps").doesNotExist()) // D-042: 조리 단계는 상세 응답에만
                 .andExpect(jsonPath("$.recipe[0].expiredIngredients[0]").value("두부"))
                 .andExpect(jsonPath("$.recipe[0].substitutes[0].from").value("닭고기"))
                 .andExpect(jsonPath("$.recipe[0].rcpSeq").doesNotExist())

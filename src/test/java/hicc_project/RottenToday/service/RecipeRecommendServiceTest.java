@@ -1,7 +1,6 @@
 package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.RecipeResponseDto;
-import hicc_project.RottenToday.dto.RecipeStepDto;
 import hicc_project.RottenToday.dto.SubstituteDto;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.*;
@@ -275,7 +274,7 @@ class RecipeRecommendServiceTest {
     }
 
     @Test
-    void 응답의_조리_단계는_값으로_채워진다() {
+    void 추천은_조리_단계를_읽지_않는다() { // D-042: 레시피마다 recipe_step을 조회하던 N+1을 없앴다
         fridge("두부", 30);
         Recipe recipe = recipe("1", "두부조림", "두부");
         RecipeStep step = new RecipeStep(1, "두부를 썬다.", null);
@@ -283,11 +282,11 @@ class RecipeRecommendServiceTest {
         recipe.setRecipeSteps(new ArrayList<>(List.of(step)));
         em.persist(step);
 
-        RecipeResponseDto dto = recommend().get(0);
+        assertThat(names(recommend())).containsExactly("두부조림");
 
-        // 엔티티가 아니라 값으로 복사한 DTO여야 트랜잭션 밖 직렬화에서 실패하지 않는다
-        assertThat(dto.getSteps()).hasOnlyElementsOfType(RecipeStepDto.class);
-        assertThat(dto.getSteps()).extracting(RecipeStepDto::description).containsExactly("두부를 썬다.");
+        // 추천이 읽어 온 레시피 엔티티의 조리 단계 컬렉션은 초기화되지 않은 채여야 한다
+        Recipe loaded = em.find(Recipe.class, recipe.getId());
+        assertThat(jakarta.persistence.Persistence.getPersistenceUtil().isLoaded(loaded, "recipeSteps")).isFalse();
     }
 
     @Test

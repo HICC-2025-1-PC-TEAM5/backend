@@ -24,7 +24,7 @@ public class RecipeResponseDto {
     private Double fat;
     private String ingredients;
     private String image;
-    private List<RecipeStepDto> steps;
+    // 조리 단계는 넣지 않는다. 카드에서 쓰지 않고 상세 응답(recipeGuide.steps)에 있다. 넣으면 레시피마다 recipe_step 조회가 생긴다 (D-042)
 
     // 추천 응답에만 채운다 (레시피 계획 Phase 5, D-019). 다른 응답에서는 빠진다
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -53,7 +53,5 @@ public class RecipeResponseDto {
         this.fat = recipe.getFat();
         this.ingredients = recipe.getIngredients();
         this.image = recipe.getImage();
-        this.steps = RecipeStepDto.fromAll(recipe.getRecipeSteps()); // 트랜잭션 안에서 값으로 복사한다
-
     }
 }
