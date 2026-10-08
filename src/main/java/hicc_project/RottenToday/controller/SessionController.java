@@ -49,18 +49,25 @@ public class SessionController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader(name="Authorization", required=false) String authorization) {
+    public ResponseEntity<?> logout(@RequestHeader(name="Authorization", required=false) String authorization,
+                                    @CookieValue(name="refresh_token", required=false) String refresh) {
         HttpHeaders out = new HttpHeaders();
 
-        // 1) Access 토큰에서 memberId 추출 → tokenVersion++ (이전 토큰 모두 무효)
+        // 0) 이 기기의 refresh 토큰을 DB에서 지운다 → 복사해 둔 refresh 토큰도 더는 쓸 수 없다 (D-037, B28)
+        Long memberId = jwtService.revoke(refresh).orElse(null);
+
+        // 1) Access 토큰에서 memberId 추출 → tokenVersion++ (이전 access 토큰 모두 무효)
+        //    access가 만료돼 읽을 수 없으면 refresh 토큰의 회원으로 올린다
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String access = authorization.substring(7);
             try {
                 SecretKey key = Keys.hmacShaKeyFor(props.getSecret().getBytes(StandardCharsets.UTF_8));
                 var claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(access).getBody();
-                long memberId = Long.parseLong(claims.getSubject());
-                memberService.bumpTokenVersion(memberId);
+                memberId = Long.parseLong(claims.getSubject());
             } catch (Exception ignore) { /* 토큰 파싱 실패여도 쿠키 삭제는 진행 */ }
+        }
+        if (memberId != null) {
+            memberService.bumpTokenVersion(memberId);
         }
 
         // 2) refresh 쿠키 삭제 (+ 레거시 삭제)

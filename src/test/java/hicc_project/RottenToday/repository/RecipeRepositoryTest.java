@@ -49,11 +49,11 @@ class RecipeRepositoryTest {
     }
 
     @Test
-    void 마이그레이션이_V3까지_적용된다() {
+    void 마이그레이션이_V4까지_적용된다() {
         List<String> versions = jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success = 1 ORDER BY installed_rank", String.class);
 
-        assertThat(versions).containsExactly("1", "2", "3");
+        assertThat(versions).containsExactly("1", "2", "3", "4");
     }
 
     @Test
