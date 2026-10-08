@@ -1,9 +1,12 @@
 package hicc_project.RottenToday.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hicc_project.RottenToday.config.OpenAiProperties;
 import hicc_project.RottenToday.dto.*;
+import hicc_project.RottenToday.entity.Category;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +27,7 @@ public class OpenAiService {
 
     private final OpenAiProperties openAiProperties;
     private final WebClient webClient;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public OpenAiService(OpenAiProperties openAiProperties, WebClient.Builder webClientBuilder) {
         this.openAiProperties = openAiProperties;
@@ -123,10 +127,7 @@ public class OpenAiService {
 
 
         try {
-
-
             log.info("GPT API 호출 시작 - URL: {}", openAiProperties.getUrl());
-            log.debug("요청 데이터: {}", request);
 
             ChatResponse response = webClient.post()
                     .uri("/v1/chat/completions")
@@ -134,63 +135,93 @@ public class OpenAiService {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .bodyValue(request)
                     .retrieve()
-                    .onStatus(status -> status.is4xxClientError(), clientResponse -> {
-                        log.error("GPT API 클라이언트 오류 발생: {}", clientResponse.statusCode());
-                        return clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("오류 응답 본문: {}", errorBody);
-                                    return Mono.error(new RuntimeException("GPT API 클라이언트 오류 (" +
-                                            clientResponse.statusCode() + "): " + errorBody));
-                                });
-                    })
-                    .onStatus(status -> status.is5xxServerError(), serverResponse -> {
-                        log.error("GPT API 서버 오류 발생: {}", serverResponse.statusCode());
-                        return serverResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("서버 오류 응답 본문: {}", errorBody);
-                                    return Mono.error(new RuntimeException("GPT API 서버 오류 (" +
-                                            serverResponse.statusCode() + "): " + errorBody));
-                                });
-                    })
+                    // 오류 본문은 로그·예외에 넣지 않고 상태 코드와 오류 종류 코드만 남긴다 (B29, D-041, AGENTS 8장)
+                    .onStatus(status -> status.isError(), errorResponse -> errorResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(errorBody -> {
+                                String code = errorCodeOf(errorBody);
+                                log.error("GPT API 오류 - 상태코드: {}, 오류코드: {}", errorResponse.statusCode().value(), code);
+                                return Mono.error(new OpenAiCallException("GPT API 오류 ("
+                                        + errorResponse.statusCode().value() + ", " + code + ")"));
+                            }))
                     .bodyToMono(ChatResponse.class)
                     .timeout(Duration.ofSeconds(30))
                     .block();
 
-            log.info("GPT API 응답 수신 완료 = {}", response);
-
             String content = response.getChoices().get(0).getMessage().getContent();
-            ObjectMapper mapper = new ObjectMapper();
-            List<IngredientDto> ingredients =
-                    mapper.readValue(content, new TypeReference<List<IngredientDto>>() {});
-            log.info("GPT API 호출 성공 - 응답 길이: {}", content.length());
-
-            List<IngredientDto> ingredients2 = new ArrayList<>();
-            for (IngredientDto ingredient : ingredients) {
-                if (ingredient.getCategory().equals("가공식품") || ingredient.getCategory().equals("음료류")) {
-                    IngredientDto dto = new IngredientDto();
-                    dto.setCategory(ingredient.getCategory());
-                    dto.setName(ingredient.getName());
-                    ingredients2.add(dto);
-                } else {
-                    IngredientDto dto = new IngredientDto();
-                    dto.setCategory(ingredient.getCategory());
-                    dto.setName(ingredient.getSubcategory());
-                    ingredients2.add(dto);
-                }
+            List<IngredientDto> ingredients;
+            try {
+                ingredients = MAPPER.readValue(content, new TypeReference<List<IngredientDto>>() {});
+            } catch (JsonProcessingException e) {
+                // 파서 메시지에는 응답 일부(인식 결과)가 들어 있어 남기지 않는다
+                log.error("GPT 응답 JSON 파싱 실패 - 응답 길이: {}", content == null ? 0 : content.length());
+                throw new OpenAiCallException("GPT 응답 JSON 파싱 실패");
             }
 
-
-            return ingredients2;
+            List<IngredientDto> result = new ArrayList<>();
+            for (IngredientDto ingredient : ingredients) {
+                IngredientDto dto = toIngredient(ingredient);
+                if (dto != null) result.add(dto);
+            }
+            log.info("GPT API 호출 성공 - 응답 길이: {}, 재료 {}개", content.length(), result.size());
+            return result;
 
         } catch (WebClientRequestException e) {
-            log.error("GPT API 요청 전송 실패", e);
-            throw new RuntimeException("GPT API 요청 전송 실패: " + e.getMessage(), e);
+            log.error("GPT API 요청 전송 실패: {}", e.getClass().getSimpleName());
+            throw new RuntimeException("GPT API 요청 전송 실패", e);
         } catch (WebClientResponseException e) {
-            log.error("GPT API 응답 오류 - 상태코드: {}, 응답본문: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("GPT API 응답 오류 (" + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
-        } catch (Exception e) {
-            log.error("GPT API 호출 중 예상치 못한 오류", e);
-            throw new RuntimeException("GPT API 호출 중 예상치 못한 오류 발생: " + e.getMessage(), e);
+            log.error("GPT API 응답 오류 - 상태코드: {}", e.getStatusCode().value());
+            throw new RuntimeException("GPT API 응답 오류 (" + e.getStatusCode().value() + ")", e);
+        } catch (OpenAiCallException e) {
+            throw e; // 위에서 로그를 남기고 만든 예외
+        } catch (RuntimeException e) {
+            log.error("GPT API 호출 중 예상치 못한 오류: {}", e.getClass().getSimpleName());
+            throw new RuntimeException("GPT API 호출 중 예상치 못한 오류 발생", e);
         }
+    }
+
+    /**
+     * AI 결과 한 항목을 재료로 바꾼다. 가공식품·음료류는 name을, 나머지는 subcategory를 이름으로 쓰고 비면 다른 쪽을 쓴다.
+     * category가 비면 "기타"로 둔다(사용자가 확인 화면에서 고칠 수 있다). 이름이 둘 다 비면 등록할 수 없어 뺀다 (B29, D-041)
+     */
+    static IngredientDto toIngredient(IngredientDto ai) {
+        if (ai == null) return null;
+        String category = isBlank(ai.getCategory()) ? Category.ETC.getType() : ai.getCategory().trim();
+        boolean usesName = Category.PROCESSED.getType().equals(category) || Category.DRINK.getType().equals(category);
+        String name = usesName ? firstNonBlank(ai.getName(), ai.getSubcategory()) : firstNonBlank(ai.getSubcategory(), ai.getName());
+        if (name == null) return null;
+        IngredientDto dto = new IngredientDto();
+        dto.setCategory(category);
+        dto.setName(name);
+        return dto;
+    }
+
+    // OpenAI 오류 본문 {"error": {"code": "...", "type": "..."}}에서 종류 코드만 꺼낸다. 메시지 문장은 쓰지 않는다
+    static String errorCodeOf(String errorBody) {
+        try {
+            JsonNode error = MAPPER.readTree(errorBody == null ? "" : errorBody).path("error");
+            String code = error.path("code").asText("");
+            if (code.isBlank()) code = error.path("type").asText("");
+            return code.isBlank() ? "unknown" : code;
+        } catch (JsonProcessingException e) {
+            return "unknown";
+        }
+    }
+
+    /** OpenAI 호출·응답 처리 실패. 메시지에는 상태 코드·오류 종류 코드만 넣는다 (GlobalExceptionHandler에서 500) */
+    static class OpenAiCallException extends RuntimeException {
+        OpenAiCallException(String message) {
+            super(message);
+        }
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
+
+    private static String firstNonBlank(String a, String b) {
+        if (!isBlank(a)) return a.trim();
+        if (!isBlank(b)) return b.trim();
+        return null;
     }
 }
