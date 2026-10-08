@@ -21,6 +21,8 @@ configurations {
 
 // Spring Boot 3.4가 관리하는 Testcontainers 1.20.x는 Docker Engine 29(최소 API 1.40)에 연결하지 못한다(400). 수정된 버전으로 올린다 (D-023)
 ext['testcontainers.version'] = '1.21.4'
+// Spring Boot 3.4가 관리하는 Flyway 10.20.1은 MySQL 8.1까지만 지원해 8.4에서 "Flyway upgrade recommended" 경고가 난다. MySQL 9.4까지 지원하는 11.15.0 이후의 11.x 최신 안정 버전으로 올린다
+ext['flyway.version'] = '11.20.3'
 
 repositories {
 	mavenCentral()
