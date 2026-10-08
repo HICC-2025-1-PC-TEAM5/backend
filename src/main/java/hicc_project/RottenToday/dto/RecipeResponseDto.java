@@ -32,9 +32,11 @@ public class RecipeResponseDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer imminentCount;         // 그중 소비기한 임박 재료 수
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<String> missingIngredients; // 냉장고에 없는 재료 (양념 제외)
+    private List<String> missingIngredients; // 냉장고에 없고 대신 쓸 재료도 없는 재료 (양념 제외)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<String> expiredIngredients; // 이 레시피에 쓰이는 소비기한 지난 냉장고 재료 (FE가 확인 안내 표시)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<SubstituteDto> substitutes; // 냉장고에 없지만 대신 쓸 수 있는 재료가 있는 레시피 재료 (D-040)
 
 
 

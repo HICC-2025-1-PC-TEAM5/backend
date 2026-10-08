@@ -1,6 +1,7 @@
 package hicc_project.RottenToday.controller;
 
 import hicc_project.RottenToday.dto.RecipeDetailResponse;
+import hicc_project.RottenToday.dto.SubstituteDto;
 import hicc_project.RottenToday.dto.RecipeGuide;
 import hicc_project.RottenToday.dto.RecipeResponseDto;
 import hicc_project.RottenToday.entity.Recipe;
@@ -98,6 +99,7 @@ class RecipeControllerTest {
         dto.setImminentCount(0);
         dto.setMissingIngredients(List.of());
         dto.setExpiredIngredients(List.of("두부"));
+        dto.setSubstitutes(List.of(new SubstituteDto("닭고기살", "닭고기")));
         when(recommendService.recommendFromFridge(1L)).thenReturn(List.of(dto));
 
         mvc.perform(get("/api/users/1/recipes"))
@@ -108,6 +110,7 @@ class RecipeControllerTest {
                 .andExpect(jsonPath("$.recipe[0].ingredients").value("두부 1모, 간장 2큰술"))
                 .andExpect(jsonPath("$.recipe[0].steps[0].description").value("두부를 썬다."))
                 .andExpect(jsonPath("$.recipe[0].expiredIngredients[0]").value("두부"))
+                .andExpect(jsonPath("$.recipe[0].substitutes[0].from").value("닭고기"))
                 .andExpect(jsonPath("$.recipe[0].rcpSeq").doesNotExist())
                 .andExpect(jsonPath("$.recipe[0].recipeIngredients").doesNotExist());
     }
@@ -116,7 +119,8 @@ class RecipeControllerTest {
     void 레시피_상세는_화면에_쓰는_값만_주고_내부_필드는_내보내지_않는다() throws Exception { // D-031
         Recipe recipe = sampleRecipe();
         when(recipeService.getRecipeDetail(1L, 7L))
-                .thenReturn(new RecipeDetailResponse(recipe, new RecipeGuide(recipe.getRecipeSteps()), List.of("두부")));
+                .thenReturn(new RecipeDetailResponse(recipe, new RecipeGuide(recipe.getRecipeSteps()), List.of("두부"),
+                        List.of(new SubstituteDto("닭고기살", "닭고기"))));
 
         mvc.perform(get("/api/users/1/recipes/7"))
                 .andExpect(status().isOk())
@@ -128,6 +132,8 @@ class RecipeControllerTest {
                 .andExpect(jsonPath("$.recipe.ingredients").value("두부 1모, 간장 2큰술"))
                 .andExpect(jsonPath("$.recipeGuide.steps[0].description").value("두부를 썬다."))
                 .andExpect(jsonPath("$.expiredIngredients[0]").value("두부")) // D-038
+                .andExpect(jsonPath("$.substitutes[0].ingredient").value("닭고기살")) // D-040
+                .andExpect(jsonPath("$.substitutes[0].from").value("닭고기"))
                 .andExpect(jsonPath("$.recipe.rcpSeq").doesNotExist())
                 .andExpect(jsonPath("$.recipe.recipeIngredients").doesNotExist())
                 .andExpect(jsonPath("$.recipe.recipeSteps").doesNotExist())

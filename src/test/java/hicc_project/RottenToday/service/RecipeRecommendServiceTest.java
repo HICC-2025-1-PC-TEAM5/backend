@@ -2,6 +2,7 @@ package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.RecipeResponseDto;
 import hicc_project.RottenToday.dto.RecipeStepDto;
+import hicc_project.RottenToday.dto.SubstituteDto;
 import hicc_project.RottenToday.entity.*;
 import hicc_project.RottenToday.repository.*;
 import hicc_project.RottenToday.service.recipe.RecipeIngredientParser;
@@ -53,8 +54,11 @@ class RecipeRecommendServiceTest {
 
     @BeforeEach
     void setUp() {
-        RecipeIngredientParser parser = new RecipeIngredientParser(List.of(
-                new RecipeIngredientParser.AliasEntry("계란", "달걀", true)));
+        RecipeIngredientParser parser = new RecipeIngredientParser(
+                List.of(new RecipeIngredientParser.AliasEntry("계란", "달걀", true)),
+                List.of(new RecipeIngredientParser.SubstituteEntry("닭고기살", "닭고기"),
+                        new RecipeIngredientParser.SubstituteEntry("통깨", "참깨"),
+                        new RecipeIngredientParser.SubstituteEntry("후춧가루", "후추")));
         IngredientService ingredientService = new IngredientService(fridgeRepository, ingredientRepository, memberRepository, parser);
         Clock clock = Clock.fixed(TODAY.atTime(9, 0).atZone(SEOUL).toInstant(), SEOUL);
         service = new RecipeRecommendService(ingredientService, recipeIngredientRepository, recipeRepository, memberRepository,
@@ -303,8 +307,70 @@ class RecipeRecommendServiceTest {
         em.flush();
         em.clear();
 
-        assertThat(service.expiredIngredientsOf(member.getId(), recipe.getId()))
+        assertThat(service.detailNotesOf(member.getId(), recipe.getId()).expiredIngredients())
                 .containsExactlyInAnyOrder("달걀", "두부");
+    }
+
+    // D-040: 대체 가능 재료
+    @Test
+    void 냉장고에_없어도_대신_쓸_재료가_있으면_부족이_아니라_대체_가능으로_알린다() {
+        fridge("닭고기", 30);
+        fridge("대파", 30);
+        recipe("1", "닭볶음", "닭고기살", "대파", "감자");
+
+        RecipeResponseDto dto = recommend().get(0);
+
+        assertThat(dto.getMatchedCount()).isEqualTo(1); // 대체 재료는 일치로 세지 않는다
+        assertThat(dto.getMissingIngredients()).containsExactly("감자");
+        assertThat(dto.getSubstitutes()).containsExactly(new SubstituteDto("닭고기살", "닭고기"));
+    }
+
+    @Test
+    void 대체_가능한_재료는_부족_수에서_빠져_일치_수가_같으면_앞선다() {
+        fridge("대파", 30);
+        fridge("닭고기", 30);
+        recipe("1", "대파감자당근볶음", "대파", "감자", "당근");    // 부족 2
+        recipe("2", "닭살대파감자볶음", "대파", "감자", "닭고기살"); // 부족 1 + 대체 1
+
+        assertThat(names(recommend())).containsExactly("닭살대파감자볶음", "대파감자당근볶음");
+    }
+
+    @Test
+    void 양념을_대신하는_재료도_양념으로_보아_부족에_넣지_않는다() {
+        fridge("두부", 30);
+        recipe("1", "두부구이", "두부", "후춧가루", "통깨");
+
+        RecipeResponseDto dto = recommend().get(0);
+
+        assertThat(dto.getMissingIngredients()).isEmpty();
+        assertThat(dto.getSubstitutes()).isEmpty();
+    }
+
+    @Test
+    void 알레르기는_대체_가능한_재료_이름도_원문에서_거른다() {
+        Ingredient sesame = new Ingredient();
+        sesame.setName("참깨");
+        sesame.setCategory(Category.ETC);
+        em.persist(sesame);
+        em.persist(new Allergy(member, sesame));
+        fridge("두부", 30);
+        recipe("1", "두부통깨무침", "두부", "통깨");
+        recipe("2", "두부조림", "두부", "간장");
+
+        assertThat(names(recommend())).containsExactly("두부조림");
+    }
+
+    @Test
+    void 상세에도_대체_가능_재료를_준다() {
+        fridge("닭고기", 30);
+        Recipe recipe = recipe("1", "닭죽", "닭고기살", "쌀");
+        em.flush();
+        em.clear();
+
+        RecipeRecommendService.DetailNotes notes = service.detailNotesOf(member.getId(), recipe.getId());
+
+        assertThat(notes.substitutes()).containsExactly(new SubstituteDto("닭고기살", "닭고기"));
+        assertThat(notes.expiredIngredients()).isEmpty();
     }
 
     @Test
@@ -314,6 +380,6 @@ class RecipeRecommendServiceTest {
         em.flush();
         em.clear();
 
-        assertThat(service.expiredIngredientsOf(member.getId(), recipe.getId())).isEmpty();
+        assertThat(service.detailNotesOf(member.getId(), recipe.getId()).expiredIngredients()).isEmpty();
     }
 }

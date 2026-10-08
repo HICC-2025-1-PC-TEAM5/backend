@@ -22,7 +22,7 @@ public class RecipeService {
     private final MemberRepository memberRepository;
     private final TasteRepository tasteRepository;
     private final RecipeStepRepository recipeStepRepository;
-    private final RecipeRecommendService recipeRecommendService; // 상세의 지난 재료 계산 (D-038)
+    private final RecipeRecommendService recipeRecommendService; // 상세의 지난 재료·대체 가능 재료 계산 (D-038·D-040)
 
     @Autowired
     public RecipeService(RecipeRepository recipeRepository, TasteRepository tasteRepository, MemberRepository memberRepository, RecipeStepRepository recipeStepRepository, RecipeRecommendService recipeRecommendService) {
@@ -37,9 +37,9 @@ public class RecipeService {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityNotFoundException("해당 레시피 존재 x"));
         List<RecipeStep> byRecipeId = recipeStepRepository.findByRecipeId(recipeId);
         RecipeGuide recipeGuide = new RecipeGuide(byRecipeId);
-        // 어느 화면에서 열어도 지난 재료 안내가 보이게 상세 응답에 넣는다 (D-038)
-        List<String> expired = recipeRecommendService.expiredIngredientsOf(userId, recipeId);
-        RecipeDetailResponse response = new RecipeDetailResponse(recipe, recipeGuide, expired);
+        // 어느 화면에서 열어도 지난 재료·대체 가능 안내가 보이게 상세 응답에 넣는다 (D-038·D-040)
+        RecipeRecommendService.DetailNotes notes = recipeRecommendService.detailNotesOf(userId, recipeId);
+        RecipeDetailResponse response = new RecipeDetailResponse(recipe, recipeGuide, notes.expiredIngredients(), notes.substitutes());
         return response;
     }
 

@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
  * 이름은 {@link #normalize(String)}로 정규화한다: 수식어(다진·저염 등)를 떼고 동의어 사전으로 일반적으로 쓰는 이름 하나로 맞춘다.
  * 냉장고 재료 이름도 추천할 때 같은 함수로 정규화해야 서로 맞는다.
  * 외부 상태가 없는 순수 함수다. 동의어 사전은 {@code recipe/ingredient-aliases.csv}에서 읽는다.
+ * 같은 재료는 아니지만 대신 쓸 수 있는 재료(닭고기살 ↔ 닭고기)는 {@code recipe/ingredient-substitutes.csv}에서 읽는다 (D-040)
  */
 @Component
 public class RecipeIngredientParser {
@@ -32,6 +33,7 @@ public class RecipeIngredientParser {
     public record ParsedIngredient(String name, String rawText) {}
 
     private static final String ALIAS_RESOURCE = "recipe/ingredient-aliases.csv";
+    private static final String SUBSTITUTE_RESOURCE = "recipe/ingredient-substitutes.csv";
 
     // 줄 앞 기호와 "[1인분]" 같은 대괄호 머리말
     private static final Pattern LEADING_MARK = Pattern.compile("^[\\s●•·∙ㆍ\\-*※▶▷◆◇■□○◎]+");
@@ -64,15 +66,20 @@ public class RecipeIngredientParser {
     /** 사전 한 행. common = 기준 이름과 함께 둘 다 흔히 쓰는 이름 (화면 표시·검색에 함께 쓴다) */
     public record AliasEntry(String alias, String canonical, boolean common) {}
 
+    /** 대체 가능 관계 한 행 (양방향, D-040) */
+    public record SubstituteEntry(String name, String substitute) {}
+
     private final Map<String, String> aliases;
     // 기준 이름 → 그 이름으로 정규화되는 모든 별칭 (예: 달걀 → [계란, 삶은달걀, …])
     private final Map<String, Set<String>> aliasesByCanonical = new HashMap<>();
     // 기준 이름 → 둘 다 흔히 쓰는 별칭 (예: 달걀 → [계란])
     private final Map<String, List<String>> commonByCanonical = new HashMap<>();
+    // 정규화한 이름 → 대신 쓸 수 있는 재료의 정규화한 이름 (양방향)
+    private final Map<String, Set<String>> substitutes = new HashMap<>();
 
     @Autowired // 빈으로는 리소스 사전을 읽는 기본 생성자를 쓴다
     public RecipeIngredientParser() {
-        this(loadEntries());
+        this(loadEntries(), loadSubstitutes());
     }
 
     public RecipeIngredientParser(Map<String, String> aliases) {
@@ -80,6 +87,10 @@ public class RecipeIngredientParser {
     }
 
     public RecipeIngredientParser(List<AliasEntry> entries) {
+        this(entries, List.of());
+    }
+
+    public RecipeIngredientParser(List<AliasEntry> entries, List<SubstituteEntry> substituteEntries) {
         Map<String, String> map = new LinkedHashMap<>();
         for (AliasEntry e : entries) {
             map.put(e.alias(), e.canonical());
@@ -88,6 +99,13 @@ public class RecipeIngredientParser {
             if (e.common()) commonByCanonical.computeIfAbsent(e.canonical(), k -> new ArrayList<>()).add(e.alias());
         }
         this.aliases = map;
+        // 대체 관계의 이름도 동의어 사전으로 정규화해 둔다 (레시피·냉장고 이름과 같은 기준)
+        for (SubstituteEntry e : substituteEntries) {
+            String a = normalize(e.name()), b = normalize(e.substitute());
+            if (a.isEmpty() || b.isEmpty() || a.equals(b)) continue;
+            substitutes.computeIfAbsent(a, k -> new LinkedHashSet<>()).add(b);
+            substitutes.computeIfAbsent(b, k -> new LinkedHashSet<>()).add(a);
+        }
     }
 
     /**
@@ -100,6 +118,21 @@ public class RecipeIngredientParser {
         Set<String> names = new LinkedHashSet<>();
         names.add(canonical);
         names.addAll(aliasesByCanonical.getOrDefault(canonical, Set.of()));
+        return names;
+    }
+
+    /** 이 재료를 대신할 수 있는 재료들의 정규화한 이름 (자기 자신 제외). 예: "닭고기살" → [닭고기] (D-040) */
+    public Set<String> substitutesOf(String name) {
+        return substitutes.getOrDefault(normalize(name), Set.of());
+    }
+
+    /**
+     * 같은 재료의 모든 이름 + 대체 가능한 재료의 모든 이름. 알레르기처럼 빠뜨리면 안 되는 곳에 쓴다 (D-040).
+     * 예: "참깨" → [참깨, …, 통깨, 깨]
+     */
+    public Set<String> relatedNamesOf(String name) {
+        Set<String> names = new LinkedHashSet<>(namesOf(name));
+        for (String sub : substitutesOf(name)) names.addAll(namesOf(sub));
         return names;
     }
 
@@ -206,6 +239,27 @@ public class RecipeIngredientParser {
             s = TRAILING_SUFFIX.matcher(s).replaceFirst("");
         } while (!s.equals(prev2));
         return s.replaceAll("[()\\[\\]:<>]", " ").trim();
+    }
+
+    /** 재료,대체 재료,이유 형식. '#'으로 시작하는 줄은 주석 */
+    static List<SubstituteEntry> loadSubstitutes() {
+        List<SubstituteEntry> entries = new ArrayList<>();
+        InputStream in = RecipeIngredientParser.class.getClassLoader().getResourceAsStream(SUBSTITUTE_RESOURCE);
+        if (in == null) return entries;
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = r.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+                String[] kv = line.split(",", 3); // 재료,대체 재료,이유
+                if (kv.length >= 2 && !kv[0].isBlank() && !kv[1].isBlank()) {
+                    entries.add(new SubstituteEntry(kv[0].trim(), kv[1].trim()));
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("대체 재료 사전을 읽지 못했습니다: " + SUBSTITUTE_RESOURCE, e);
+        }
+        return entries;
     }
 
     /** 별칭,이름,이유 형식. '#'으로 시작하는 줄은 주석. 키는 공백을 뺀 이름 */

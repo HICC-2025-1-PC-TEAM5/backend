@@ -1,6 +1,7 @@
 package hicc_project.RottenToday.service;
 
 import hicc_project.RottenToday.dto.RecipeResponseDto;
+import hicc_project.RottenToday.dto.SubstituteDto;
 import hicc_project.RottenToday.entity.Allergy;
 import hicc_project.RottenToday.entity.Appetite;
 import hicc_project.RottenToday.entity.Member;
@@ -34,7 +35,8 @@ import java.util.stream.Collectors;
 /**
  * 냉장고 재료 전체로 로컬 DB 레시피를 추천한다 (레시피 계획 Phase 5, D-019·D-030). 외부 API를 호출하지 않고 저장하지 않는다.
  * 정렬: 임박 재료 일치 수 ↓ → 전체 일치 수 ↓ → 부족 재료 수 ↑ → RCP_SEQ ↑. 일치는 정규화 이름·동의어가 같을 때만, 양념은 일치·부족에서 뺀다.
- * 알레르기 재료(동의어 포함)가 원문에 들어 있거나 싫어요한 레시피는 뺀다. API 계약은 그대로다 (D-018).
+ * 알레르기 재료(동의어·대체 재료 포함)가 원문에 들어 있거나 싫어요한 레시피는 뺀다. API 계약은 그대로다 (D-018).
+ * 냉장고에 없는 레시피 재료라도 대신 쓸 수 있는 재료가 있으면 부족이 아니라 substitutes로 알린다(일치 수에는 넣지 않음, D-040).
  */
 @Slf4j
 @Service
@@ -72,15 +74,25 @@ public class RecipeRecommendService {
         this.clock = clock;
         this.imminentDays = imminentDays;
         this.limit = limit;
-        // 사전과 같은 이름으로 맞춘다 (예: 깨 → 참깨)
-        this.seasonings = seasonings.stream().map(ingredientParser::normalize).filter(s -> !s.isEmpty())
-                .collect(Collectors.toUnmodifiableSet());
+        // 사전과 같은 이름으로 맞추고, 양념을 대신하는 재료도 양념으로 본다 (예: 후추 → 후춧가루, 참깨 → 통깨, D-040)
+        Set<String> normalized = new HashSet<>();
+        for (String s : seasonings) {
+            String name = ingredientParser.normalize(s);
+            if (name.isEmpty()) continue;
+            normalized.add(name);
+            normalized.addAll(ingredientParser.substitutesOf(name));
+        }
+        this.seasonings = Set.copyOf(normalized);
     }
 
     /** 냉장고 재료의 상태. 같은 이름의 재료가 여럿이면 하나라도 임박이면 임박, 하나라도 지났으면 지난 재료로 본다 */
     private record FridgeNames(Set<String> all, Set<String> imminent, Set<String> expired) {}
 
-    private record Candidate(RecipeSummary recipe, Set<String> matched, int imminentCount, List<String> missing) {}
+    private record Candidate(RecipeSummary recipe, Set<String> matched, int imminentCount, List<String> missing,
+                             List<SubstituteDto> substitutes) {}
+
+    /** 레시피 상세의 냉장고 안내: 지난 재료(D-038)와 대체 가능 재료(D-040) */
+    public record DetailNotes(List<String> expiredIngredients, List<SubstituteDto> substitutes) {}
 
     @Transactional(readOnly = true)
     public List<RecipeResponseDto> recommendFromFridge(Long memberId) {
@@ -98,18 +110,31 @@ public class RecipeRecommendService {
     }
 
     /**
-     * 레시피 상세용: 이 레시피 재료 중 냉장고에서 기한이 지난 것 (D-038).
-     * 추천과 같은 규칙(정규화·동의어 이름 일치, 양념 제외)이라 추천 카드의 expiredIngredients와 같다
+     * 레시피 상세용 냉장고 안내 (D-038·D-040). 추천과 같은 규칙(정규화·동의어 일치, 양념 제외)이라 추천 카드의 값과 같다.
+     * expiredIngredients: 레시피 재료 중 냉장고에서 기한이 지난 것. substitutes: 냉장고에 없지만 대신 쓸 수 있는 재료가 있는 것
      */
     @Transactional(readOnly = true)
-    public List<String> expiredIngredientsOf(Long memberId, Long recipeId) {
+    public DetailNotes detailNotesOf(Long memberId, Long recipeId) {
         FridgeNames fridge = classify(ingredientService.getRefidge(memberId).getRefrigeratorIngredient());
-        if (fridge.expired().isEmpty()) return List.of();
-        return recipeIngredientRepository.findNamesByRecipeIdIn(List.of(recipeId)).stream()
+        if (fridge.all().isEmpty()) return new DetailNotes(List.of(), List.of());
+        List<String> names = recipeIngredientRepository.findNamesByRecipeIdIn(List.of(recipeId)).stream()
                 .map(RecipeIngredientName::getName)
-                .filter(fridge.expired()::contains)
+                .filter(n -> !seasonings.contains(n))
                 .distinct()
                 .toList();
+        List<String> expired = names.stream().filter(fridge.expired()::contains).toList();
+        List<SubstituteDto> subs = substitutesFor(names.stream().filter(n -> !fridge.all().contains(n)).toList(), fridge.all());
+        return new DetailNotes(expired, subs);
+    }
+
+    // 냉장고에 없는 레시피 재료마다 대신 쓸 수 있는 냉장고 재료를 하나 찾는다 (사전 순서상 첫 번째)
+    private List<SubstituteDto> substitutesFor(List<String> missingNames, Set<String> fridgeNames) {
+        List<SubstituteDto> result = new ArrayList<>();
+        for (String name : missingNames) {
+            ingredientParser.substitutesOf(name).stream().filter(fridgeNames::contains).findFirst()
+                    .ifPresent(from -> result.add(new SubstituteDto(name, from)));
+        }
+        return result;
     }
 
     private FridgeNames classify(List<RefridgeDto> items) {
@@ -152,11 +177,11 @@ public class RecipeRecommendService {
             }
         }
 
-        // 4. 알레르기 재료의 모든 이름(동의어 포함, 공백 제외)이 원문에 들어 있으면 제외. 오탐은 허용하고 누락은 막는다 (B22)
+        // 4. 알레르기 재료의 모든 이름(동의어·대체 재료 포함, 공백 제외)이 원문에 들어 있으면 제외. 오탐은 허용하고 누락은 막는다 (B22, D-040)
         Set<String> allergyNames = new HashSet<>();
         for (Allergy allergy : member.getAllergies()) {
             if (allergy.getIngredient() == null) continue; // 재료가 지워진 알레르기 행은 건너뛴다
-            for (String name : ingredientParser.namesOf(allergy.getIngredient().getName())) {
+            for (String name : ingredientParser.relatedNamesOf(allergy.getIngredient().getName())) {
                 allergyNames.add(name.replaceAll("\\s+", ""));
             }
         }
@@ -169,8 +194,12 @@ public class RecipeRecommendService {
             String parts = recipe.getIngredients() == null ? "" : recipe.getIngredients().replaceAll("\\s+", "");
             if (allergyNames.stream().anyMatch(parts::contains)) continue;
             int imminentCount = (int) matched.stream().filter(fridge.imminent()::contains).count();
-            List<String> missing = names.stream().filter(n -> !fridge.all().contains(n)).toList();
-            candidates.add(new Candidate(recipe, matched, imminentCount, missing));
+            List<String> notInFridge = names.stream().filter(n -> !fridge.all().contains(n)).toList();
+            // 대신 쓸 수 있는 재료가 있으면 부족에서 뺀다 (정렬의 부족 수에도 반영, D-040)
+            List<SubstituteDto> subs = substitutesFor(notInFridge, fridge.all());
+            Set<String> substituted = subs.stream().map(SubstituteDto::ingredient).collect(Collectors.toSet());
+            List<String> missing = notInFridge.stream().filter(n -> !substituted.contains(n)).toList();
+            candidates.add(new Candidate(recipe, matched, imminentCount, missing, subs));
         }
 
         // 5. 정렬 후 상한
@@ -192,6 +221,7 @@ public class RecipeRecommendService {
             dto.setMatchedCount(c.matched().size());
             dto.setImminentCount(c.imminentCount());
             dto.setMissingIngredients(c.missing());
+            dto.setSubstitutes(c.substitutes());
             dto.setExpiredIngredients(c.matched().stream().filter(fridge.expired()::contains).toList());
             result.add(dto);
         }
